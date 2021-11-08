@@ -113,12 +113,10 @@ class Predictor(cog.Predictor):
         if url:
             filename = self._download(url)
 
-        print("loading and resampling audio...")
-
+        print("running the inference network...")
         self.loader.configure(sampleRate=self.sample_rate, filename=str(filename))
         run(self.loader)
 
-        print("computing activations...")
         activations = self.pool[self.output]
         activations_mean = np.mean(activations, axis=0)
 
