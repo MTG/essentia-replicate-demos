@@ -158,19 +158,33 @@ class Predictor(cog.Predictor):
         print("done!")
         return out_path
 
-    def _download(self, url, ext="mp3"):
+    def _download(self, url, ext="wav"):
         """Download a YouTube URL in the specified format to a temporal directory"""
 
         tmp_dir = Path(tempfile.mktemp())
         ydl_opts = {
-            "format": "bestaudio/best",
+            # The download is quite slow, use the most compressed format that doesn't affect
+            # the sense of the prediction (too much):
+            #
+            # Code  Container  Audio Codec  Audio Bitrate     Channels    Still offered?
+            # 250   WebM       Opus (VBR)   ~70 Kbps          Stereo (2)  Yes
+            # 251   WebM       Opus         (VBR) <=160 Kbps  Stereo (2)  Yes
+            # 40    MP4        AAC (LC)     128 Kbps          Stereo (2)  Yes, YT Music
+            #
+            # Download speeds:
+            # 250 -> ~19s, 251 -> 30s, 40 -> ~35s
+            # but 250 changes the predictions too munch. Using 251 as a compromise.
+            #
+            # From https://gist.github.com/AgentOak/34d47c65b1d28829bb17c24c04a0096f
+            "format": "251",
             "postprocessors": [
                 {
                     "key": "FFmpegExtractAudio",
                     "preferredcodec": ext,
-                    "preferredquality": "192",
                 }
             ],
+            # render audio @16kHz to prevent resampling latter on
+            "postprocessor_args": ["-ar", f"{self.sample_rate}"],
             "outtmpl": str(tmp_dir / "%(id)s.%(ext)s"),
         }
 
