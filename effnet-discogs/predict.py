@@ -34,7 +34,7 @@ class Predictor(cog.Predictor):
     def setup(self):
         """Load the model into memory and create the Essentia network for predictions"""
 
-        self.model = "models/210402-122138_dev-multi-node.pb"  # Only supported variant for now. It's a development version!
+        self.model = "/models/210402-122138_dev-multi-node.pb"  # Only supported variant for now. It's a development version!
         self.input = "melspectrogram"
         self.output = "activations"
         self.sample_rate = 16000
