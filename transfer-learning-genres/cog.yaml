@@ -1,0 +1,36 @@
+# Configuration for Cog ⚙️
+# Reference: https://github.com/replicate/cog/blob/main/docs/yaml.md
+image: "r8.im/mtg/essentia-transfer-learning-genres"
+
+build:
+  # set to true if your model requires a GPU
+  gpu: false
+
+  # python version in the form '3.8' or '3.8.12'
+  python_version: "3.8"
+
+  # a list of packages in the format <package-name>==<version>
+  python_packages:
+    - "essentia-tensorflow==2.1b6.dev609"
+    - "numpy==1.21.3"
+
+  run:
+    - mkdir models
+    - curl -s -o models/genre_dortmund-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/genre_dortmund/genre_dortmund-musicnn-msd-2.pb
+    - curl -s -o models/genre_dortmund-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/genre_dortmund/genre_dortmund-musicnn-msd-2.pb
+    - curl -s -o models/genre_dortmund-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/genre_dortmund/genre_dortmund-vggish-audioset-1.pb
+
+    - curl -s -o models/genre_electronic-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/genre_electronic/genre_electronic-musicnn-msd-2.pb
+    - curl -s -o models/genre_electronic-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/genre_electronic/genre_electronic-musicnn-msd-2.pb
+    - curl -s -o models/genre_electronic-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/genre_electronic/genre_electronic-vggish-audioset-1.pb
+
+    - curl -s -o models/genre_rosamerica-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/genre_rosamerica/genre_rosamerica-musicnn-msd-2.pb
+    - curl -s -o models/genre_rosamerica-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/genre_rosamerica/genre_rosamerica-musicnn-msd-2.pb
+    - curl -s -o models/genre_rosamerica-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/genre_rosamerica/genre_rosamerica-vggish-audioset-1.pb
+
+    - curl -s -o models/genre_tzanetakis-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/genre_tzanetakis/genre_tzanetakis-musicnn-msd-2.pb
+    - curl -s -o models/genre_tzanetakis-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/genre_tzanetakis/genre_tzanetakis-musicnn-msd-2.pb
+    - curl -s -o models/genre_tzanetakis-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/genre_tzanetakis/genre_tzanetakis-vggish-audioset-1.pb
+
+# predict.py defines how predictions are run on your model
+predict: "predict.py:Predictor"
