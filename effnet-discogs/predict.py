@@ -46,9 +46,9 @@ class Predictor(cog.Predictor):
         self.hop_size = 256
 
         # Most Essentia TensorFlow models have a dedicated wrapper algorithm to simplify inference.
-        # While this is a WIP for effnet-discogs, this is am opportunity to learn a bit of
+        # While this is a WIP for effnet-discogs, this is an opportunity to learn a bit of
         # Essentia's streaming mode, which prevents copying intermediate outputs to Python making
-        # it more efficient among other benefits.
+        # it more efficient (among other benefits).
         self.pool = Pool()
         self.loader = MonoLoader(sampleRate=self.sample_rate)
         self.frameCutter = FrameCutter(
