@@ -1,0 +1,29 @@
+# Configuration for Cog ⚙️
+# Reference: https://github.com/replicate/cog/blob/main/docs/yaml.md
+
+build:
+  # set to true if your model requires a GPU
+  gpu: false
+
+  # a list of ubuntu apt packages to install
+  system_packages:
+    - "ffmpeg"
+
+  # python version in the form '3.8' or '3.8.12'
+  python_version: "3.7"
+
+  # a list of packages in the format <package-name>==<version>
+  python_packages:
+    - "essentia-tensorflow==2.1b6.dev609"
+    - "seaborn==0.11"
+    - "youtube-dl==2021.6.6"
+  
+  # commands run after the environment is setup
+  run:
+    - mkdir models
+    - curl -L -o models/210402-122138_dev-multi-node.pb "https://drive.google.com/uc?export=download&id=1he8G-V5cgFqYFfwJEqHaXnyZTXHOtf3J"
+    - "echo env is ready!"
+    # - "echo another command if needed"
+
+# predict.py defines how predictions are run on your model
+predict: "predict.py:Predictor"
