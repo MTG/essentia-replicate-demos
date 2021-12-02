@@ -182,13 +182,17 @@ class Predictor(cog.Predictor):
         print("running the inference network...")
         run(loader)
 
-        results = "DUMMY OUTPUT"
-        # TODO
-
-        out_path = Path(tempfile.mkdtemp()) / "out.md"
-        with open(out_path, "w") as f:
-            f.write(results)
-        return out_path
+        header = "| class | activation |"
+        bar = "|---|---|"
+        table = header + "\n" + bar + "\n"
+        for model in models:
+            average = np.mean(pool["activations.%s" % model["name"]], axis=0)
+            for i, label in enumerate(model["labels"]):
+                # Do not plot negative labels
+                if label.startswith("Not"):
+                    continue
+                table += f"{label} | {average[i]:.2f}\n"
+        return table
 
     def _download(self, url, ext="wav"):
         """Download a YouTube URL in the specified format to a temporal directory"""
