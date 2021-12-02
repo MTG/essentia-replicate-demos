@@ -126,18 +126,20 @@ class Predictor(cog.Predictor):
         pool = Pool()
         loader = MonoLoader(filename=str(audio), sampleRate=self.sample_rate)
 
-        if model_type in ['musicnn-msd-2', "musicnn-mtt-2"]:
+        patch_hop_size = 0  # No overlap for efficiency
+        batch_size = 256
+
+        if model_type in ["musicnn-msd-2", "musicnn-mtt-2"]:
             frame_size = 512
             hop_size = 256
-            patch_size = 128
-            patch_hop_size = 65
-            batch_size = 32
+            patch_size = 187
             nbands = 96
             melSpectrogram = TensorflowInputMusiCNN()
-        elif model_type in ['vggish-audioset-1']:
-            # TODO Hardcode the correct values. Add missing values.
-            frame_size = 512
-            hop_size = 256
+        elif model_type in ["vggish-audioset-1"]:
+            frame_size = 400
+            hop_size = 160
+            patch_size = 96
+            nbands = 64
             melSpectrogram = TensorflowInputVGGish()
 
         frameCutter = FrameCutter(
