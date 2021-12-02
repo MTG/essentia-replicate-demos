@@ -71,10 +71,6 @@ build:
     - curl -s -o models/danceability-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/danceability/danceability-musicnn-mtt-2.pb
     - curl -s -o models/danceability-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/danceability/danceability-vggish-audioset-1.pb
 
-    - curl -s -o models/danceability-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/danceability/danceability-musicnn-msd-2.pb
-    - curl -s -o models/danceability-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/danceability/danceability-musicnn-mtt-2.pb
-    - curl -s -o models/danceability-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/danceability/danceability-vggish-audioset-1.pb
-
     - curl -s -o models/voice_instrumental-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/voice_instrumental/voice_instrumental-musicnn-msd-2.pb
     - curl -s -o models/voice_instrumental-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/voice_instrumental/voice_instrumental-musicnn-mtt-2.pb
     - curl -s -o models/voice_instrumental-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/voice_instrumental/voice_instrumental-vggish-audioset-1.pb
