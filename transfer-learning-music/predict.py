@@ -2,7 +2,6 @@
 # Reference: https://github.com/replicate/cog/blob/main/docs/python.md
 
 from pathlib import Path
-import os
 import tempfile
 
 import cog
@@ -20,9 +19,6 @@ from essentia.streaming import (
 )
 from essentia import Pool, run
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas
 
 
 MODELS_HOME = "/models"
@@ -81,11 +77,6 @@ class Predictor(cog.Predictor):
     def setup(self):
         """Load the model into memory to make running multiple predictions efficient"""
         self.sample_rate = 16000
-        self.frame_size = 512
-        self.hop_size = 256
-
-        self.input = "melspectrogram"
-        self.output = "activations"
 
     @cog.input(
         "audio",

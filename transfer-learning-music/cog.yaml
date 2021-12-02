@@ -18,7 +18,6 @@ build:
   python_packages:
     - "essentia-tensorflow==2.1b6.dev609"
     - "numpy==1.21.3"
-    - "seaborn==0.11"
     - "youtube-dl==2021.6.6"
 
   run:
