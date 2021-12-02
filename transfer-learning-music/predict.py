@@ -129,9 +129,6 @@ class Predictor(cog.Predictor):
             labels = []
             activations = []
             for i, label in enumerate(model["labels"]):
-                # Do not plot negative labels
-                if label.startswith("not"):
-                    continue
                 labels.append(label)
                 activations.append(f"{average[i]:.2f}")
 
@@ -141,7 +138,6 @@ class Predictor(cog.Predictor):
             table += f"{model['name']} | {labels} | {activations}\n"
             if model != models[-1]:
                 table += "||<hr>|<hr>|\n"  # separator for readability
-
 
         out_path = Path(tempfile.mkdtemp()) / "out.md"
         with open(out_path, "w") as f:
