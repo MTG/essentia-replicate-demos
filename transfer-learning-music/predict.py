@@ -75,7 +75,7 @@ models = [
     {"name": "mood_electronic", "labels": ["electronic", "not electronic"]},
     {"name": "mood_aggressive", "labels": ["aggressive", "not aggressive"]},
     {"name": "mood_relaxed", "labels": ["not relaxed", "relaxed"]},
-    {"name": "mood_happy", "labels": ["happy", "Not happy"]},
+    {"name": "mood_happy", "labels": ["happy", "not happy"]},
     {"name": "mood_sad", "labels": ["not sad", "sad"]},
     {"name": "mood_party", "labels": ["not party", "party"]},
     {"name": "danceability", "labels": ["danceable", "not danceable"]},
@@ -199,7 +199,7 @@ class Predictor(cog.Predictor):
             average = np.mean(pool["activations.%s" % model["name"]], axis=0)
             for i, label in enumerate(model["labels"]):
                 # Do not plot negative labels
-                if label.startswith("Not"):
+                if label.startswith("not"):
                     continue
                 table += f"{label} | {average[i]:.2f}\n"
 
