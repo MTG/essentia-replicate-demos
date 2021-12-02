@@ -78,7 +78,10 @@ models = [
     {"name": "mood_happy", "labels": ["happy", "Not happy"]},
     {"name": "mood_sad", "labels": ["not sad", "sad"]},
     {"name": "mood_party", "labels": ["not party", "party"]},
-    # TODO Add missing models.
+    {"name": "danceability", "labels": ["danceable", "not danceable"]},
+    {"name": "gender", "labels": ["female", "male"]},
+    {"name": "tonal_atonal", "labels": ["tonal", "atonal"]},
+    {"name": "voice_instrumental", "labels": ["instrumental", "voice"]},
 ]
 
 
