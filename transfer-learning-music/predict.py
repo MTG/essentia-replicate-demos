@@ -139,6 +139,9 @@ class Predictor(cog.Predictor):
             activations = "<br>".join(activations)
 
             table += f"{model['name']} | {labels} | {activations}\n"
+            if model != models[-1]:
+                table += "||<hr>|<hr>|\n"  # separator for readability
+
 
         out_path = Path(tempfile.mkdtemp()) / "out.md"
         with open(out_path, "w") as f:
