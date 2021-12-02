@@ -26,49 +26,58 @@ MODELS_HOME = "/models"
 # TODO Factor out the list of models to a separate file.
 models = [
     {
-        'name': 'genre_dortmund',
-        'labels': ["alternative", "blues", "electronic", "folkcountry", "funksoulrnb", "jazz", "pop", "raphiphop", "rock"]
+        "name": "genre_dortmund",
+        "labels": [
+            "alternative",
+            "blues",
+            "electronic",
+            "folkcountry",
+            "funksoulrnb",
+            "jazz",
+            "pop",
+            "raphiphop",
+            "rock",
+        ],
     },
     {
-        'name': 'genre_rosamerica',
-        'labels': ["classic", "dance", "hip hop", "jazz", "pop", "rhythm and blues", "rock", "speech"]
+        "name": "genre_rosamerica",
+        "labels": [
+            "classic",
+            "dance",
+            "hip hop",
+            "jazz",
+            "pop",
+            "rhythm and blues",
+            "rock",
+            "speech",
+        ],
     },
     {
-        'name': 'genre_tzanetakis',
-        'labels': ["blues", "classic", "country", "disco", "hip hop", "jazz", "metal", "pop", "reggae", "rock"]
+        "name": "genre_tzanetakis",
+        "labels": [
+            "blues",
+            "classic",
+            "country",
+            "disco",
+            "hip hop",
+            "jazz",
+            "metal",
+            "pop",
+            "reggae",
+            "rock",
+        ],
     },
     {
-        'name': 'genre_electronic',
-        'labels': ["ambient", "dnb", "house", "techno", "trance"]
+        "name": "genre_electronic",
+        "labels": ["ambient", "dnb", "house", "techno", "trance"],
     },
-    {
-        'name': 'mood_acoustic',
-        'labels': ["Acoustic", "Not acoustic"]
-    },
-    {
-        'name': 'mood_electronic',
-        'labels': ["Electronic", "Not electronic"]
-    },
-    {
-        'name': 'mood_aggressive',
-        'labels': ["Aggressive", "Not aggressive"]
-    },
-    {
-        'name': 'mood_relaxed',
-        'labels': ["Not relaxed", "Relaxed"]
-    },
-    {
-        'name': 'mood_happy',
-        'labels': ["Happy", "Not happy"],
-    },
-    {
-        'name': 'mood_sad',
-        'labels': ["Not sad", "Sad"]
-    },
-    {
-        'name': 'mood_party',
-        'labels': ["Not party", "Party"]
-    },
+    {"name": "mood_acoustic", "labels": ["acoustic", "not acoustic"]},
+    {"name": "mood_electronic", "labels": ["electronic", "not electronic"]},
+    {"name": "mood_aggressive", "labels": ["aggressive", "not aggressive"]},
+    {"name": "mood_relaxed", "labels": ["not relaxed", "relaxed"]},
+    {"name": "mood_happy", "labels": ["happy", "Not happy"]},
+    {"name": "mood_sad", "labels": ["not sad", "sad"]},
+    {"name": "mood_party", "labels": ["not party", "party"]},
     # TODO Add missing models.
 ]
 
@@ -142,7 +151,7 @@ class Predictor(cog.Predictor):
             shape=[batch_size, 1, patch_size, nbands],
             patchHopSize=patch_hop_size,
         )
-        tensorToPool = TensorToPool(namespace='model/Placeholder')
+        tensorToPool = TensorToPool(namespace="model/Placeholder")
 
         # Algorithms for specific models.
         tensorflowPredict = {}
@@ -150,13 +159,14 @@ class Predictor(cog.Predictor):
         tensorToVectorReal = {}
 
         for model in models:
-            modelFilename = '/models/%s-%s.pb' % (model['name'], model_type)
-            tensorflowPredict[model['name']] = \
-                TensorflowPredict(graphFilename=modelFilename,
-                                  inputs=['model/Placeholder'],
-                                  outputs=['model/Sigmoid'])
-            poolToTensor[model['name']] = PoolToTensor(namespace='model/Sigmoid')
-            tensorToVectorReal[model['name']] = TensorToVectorReal()
+            modelFilename = "/models/%s-%s.pb" % (model["name"], model_type)
+            tensorflowPredict[model["name"]] = TensorflowPredict(
+                graphFilename=modelFilename,
+                inputs=["model/Placeholder"],
+                outputs=["model/Sigmoid"],
+            )
+            poolToTensor[model["name"]] = PoolToTensor(namespace="model/Sigmoid")
+            tensorToVectorReal[model["name"]] = TensorToVectorReal()
 
         loader.audio >> frameCutter.signal
         frameCutter.frame >> melSpectrogram.frame
@@ -165,10 +175,16 @@ class Predictor(cog.Predictor):
 
         # TODO Ugly. Loop through a simple list of model names instead.
         for model in models:
-            tensorToPool.pool >> tensorflowPredict[model['name']].poolIn
-            tensorflowPredict[model['name']].poolOut >> poolToTensor[model['name']].pool
-            poolToTensor[model['name']].tensor >> tensorToVectorReal[model['name']].tensor
-            tensorToVectorReal[model['name']].frame >> (pool, 'activations.%s' % model['name'])
+            tensorToPool.pool >> tensorflowPredict[model["name"]].poolIn
+            tensorflowPredict[model["name"]].poolOut >> poolToTensor[model["name"]].pool
+            (
+                poolToTensor[model["name"]].tensor
+                >> tensorToVectorReal[model["name"]].tensor
+            )
+            tensorToVectorReal[model["name"]].frame >> (
+                pool,
+                "activations.%s" % model["name"],
+            )
 
         print("running the inference network...")
         run(loader)
