@@ -118,16 +118,25 @@ class Predictor(cog.Predictor):
         print("running the inference network...")
         run(loader)
 
-        header = "| class | activation |"
-        bar = "|---|---|"
-        table = header + "\n" + bar + "\n"
+        header = "| model | class | activation |\n"
+        bar = "|---|---|---|\n"
+        table = header + bar
         for model in models:
             average = np.mean(pool["activations.%s" % model["name"]], axis=0)
+
+            labels = []
+            activations = []
             for i, label in enumerate(model["labels"]):
                 # Do not plot negative labels
                 if label.startswith("not"):
                     continue
-                table += f"{label} | {average[i]:.2f}\n"
+                labels.append(label)
+                activations.append(f"{average[i]:.2f}")
+
+            labels = "<br>".join(labels)
+            activations = "<br>".join(activations)
+
+            table += f"{model['name']} | {labels} | {activations}\n"
 
         out_path = Path(tempfile.mkdtemp()) / "out.md"
         with open(out_path, "w") as f:
