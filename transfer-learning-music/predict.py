@@ -109,18 +109,11 @@ class Predictor(cog.Predictor):
         melSpectrogram.bands >> vectorRealToTensor.frame
         vectorRealToTensor.tensor >> tensorToPool.tensor
 
-        # TODO Ugly. Loop through a simple list of model names instead.
-        for model in models:
-            tensorToPool.pool >> tensorflowPredict[model["name"]].poolIn
-            tensorflowPredict[model["name"]].poolOut >> poolToTensor[model["name"]].pool
-            (
-                poolToTensor[model["name"]].tensor
-                >> tensorToVectorReal[model["name"]].tensor
-            )
-            tensorToVectorReal[model["name"]].frame >> (
-                pool,
-                "activations.%s" % model["name"],
-            )
+        for model in [model["name"] for model in models]:
+            tensorToPool.pool >> tensorflowPredict[model].poolIn
+            tensorflowPredict[model].poolOut >> poolToTensor[model].pool
+            (poolToTensor[model].tensor >> tensorToVectorReal[model].tensor)
+            tensorToVectorReal[model].frame >> (pool, "activations.%s" % model)
 
         print("running the inference network...")
         run(loader)
