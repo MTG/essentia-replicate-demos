@@ -128,9 +128,14 @@ class Predictor(cog.Predictor):
 
             labels = []
             activations = []
+
+            top_class = np.argmax(average)
             for i, label in enumerate(model["labels"]):
                 labels.append(label)
-                activations.append(f"{average[i]:.2f}")
+                if i == top_class:
+                    activations.append(f"**{average[i]:.2f}**")
+                else:
+                    activations.append(f"{average[i]:.2f}")
 
             labels = "<br>".join(labels)
             activations = "<br>".join(activations)
