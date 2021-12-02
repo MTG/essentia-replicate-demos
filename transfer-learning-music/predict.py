@@ -52,7 +52,9 @@ class Predictor(cog.Predictor):
     def predict(self, audio, url, model_type):
         """Run a single prediction by all models of the selected type"""
 
-        assert audio or url, "A filename or a YouTube URL should be specified"
+        assert (audio and not url) or (
+            not audio and url
+        ), "Specify either an audio filename or a YouTube url"
 
         # If there is a YouTube url use that.
         if url:
