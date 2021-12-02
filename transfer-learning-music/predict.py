@@ -199,7 +199,11 @@ class Predictor(cog.Predictor):
                 if label.startswith("Not"):
                     continue
                 table += f"{label} | {average[i]:.2f}\n"
-        return table
+
+        out_path = Path(tempfile.mkdtemp()) / "out.md"
+        with open(out_path, "w") as f:
+            f.write(table)
+        return out_path
 
     def _download(self, url, ext="wav"):
         """Download a YouTube URL in the specified format to a temporal directory"""
