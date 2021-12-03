@@ -183,15 +183,13 @@ class Predictor(cog.Predictor):
             ],
             # render audio @16kHz to prevent resampling latter on
             "postprocessor_args": ["-ar", f"{self.sample_rate}"],
-            "outtmpl": str(tmp_dir / "%(id)s.%(ext)s"),
+            "outtmpl": str(tmp_dir / "audio.%(ext)s"),
         }
 
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
 
-        url_id = url.split("=")[-1]
-        paths = [p for p in tmp_dir.glob(f"*{url_id}.{ext}")]
-
+        paths = [p for p in tmp_dir.glob(f"audio.{ext}")]
         assert (
             len(paths) == 1
         ), "Something unexpected happened. Should be only one match!"
