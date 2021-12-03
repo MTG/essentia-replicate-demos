@@ -16,7 +16,7 @@ from essentia.streaming import (
     PoolToTensor,
     TensorToVectorReal,
 )
-from essentia import Pool, run
+from essentia import Pool, run, reset
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -119,6 +119,9 @@ class Predictor(cog.Predictor):
         if url:
             audio = self._download(url)
 
+        # Reset the network to set the pool in case it was cleared in the previous call.
+        reset(self.loader)
+
         print("running the inference network...")
         self.loader.configure(sampleRate=self.sample_rate, filename=str(audio))
         run(self.loader)
@@ -158,6 +161,8 @@ class Predictor(cog.Predictor):
         # Clean-up.
         if url:
             audio.unlink()
+
+        self.pool.clear()
 
         print("done!")
         return out_path
