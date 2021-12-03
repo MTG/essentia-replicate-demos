@@ -84,10 +84,10 @@ class Predictor(cog.Predictor):
         self.tensorToVectorReal.frame >> (self.pool, self.output)
 
     @cog.input(
-        "filename",
+        "audio",
         type=cog.Path,
         default=None,
-        help="Input audio path",
+        help="Audio file to process",
     )
     @cog.input(
         "url",
@@ -108,17 +108,19 @@ class Predictor(cog.Predictor):
         options=["Visualization", "JSON"],
         help="Output either a bar chart visualization or a JSON blob",
     )
-    def predict(self, filename, url, top_n, output_format):
+    def predict(self, audio, url, top_n, output_format):
         """Run a single prediction on the model"""
 
-        assert filename or url, "A filename or a YouTube URL should be specified"
+        assert (audio and not url) or (
+            not audio and url
+        ), "Specify either an audio filename or a YouTube url"
 
         # If there is a YouTube url use that.
         if url:
-            filename = self._download(url)
+            audio = self._download(url)
 
         print("running the inference network...")
-        self.loader.configure(sampleRate=self.sample_rate, filename=str(filename))
+        self.loader.configure(sampleRate=self.sample_rate, filename=str(audio))
         run(self.loader)
 
         activations = self.pool[self.output]
@@ -155,7 +157,7 @@ class Predictor(cog.Predictor):
 
         # Clean-up.
         if url:
-            filename.unlink()
+            audio.unlink()
 
         print("done!")
         return out_path
