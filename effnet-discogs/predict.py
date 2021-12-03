@@ -26,8 +26,12 @@ import youtube_dl
 from labels import labels
 
 
-# Remove the broader genre label for readability
-labels = [l.split("---")[-1] for l in labels]
+def process_labels(label):
+    genre, style = label.split("---")
+    return f"{style}\n({genre})"
+
+
+labels = list(map(process_labels, labels))
 
 
 class Predictor(cog.Predictor):
