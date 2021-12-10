@@ -4,6 +4,7 @@
 from pathlib import Path
 import tempfile
 from itertools import chain
+from textwrap import wrap
 
 import cog
 from essentia.streaming import (
@@ -117,7 +118,9 @@ class Predictor(cog.Predictor):
 
         # If there is a YouTube url use that.
         if url:
-            audio = self._download(url)
+            audio, title = self._download(url)
+        else:
+            title = audio.name
 
         # Reset the network to set the pool in case it was cleared in the previous call.
         reset(self.loader)
@@ -143,6 +146,16 @@ class Predictor(cog.Predictor):
         }
         result = pandas.DataFrame.from_dict(result)
 
+        # Wrap title to lines of approximately 50 chars.
+        title = wrap(title, width=50)
+
+        # Allow a maximum of 2 lines of title.
+        if len(title) > 2:
+            title = title[:2]
+            title[-1] += "..."
+
+        title = "\n".join(title)
+
         g = sns.catplot(
             data=result,
             kind="bar",
@@ -154,8 +167,11 @@ class Predictor(cog.Predictor):
         )
         g.set(xlabel=None)
         g.set(ylabel=None)
+        g.set(title=title)
         g.set(xlim=(0, 1))
 
+        # Add some margin so that the title is not cut.
+        g.fig.subplots_adjust(top=0.90)
 
         out_path = Path(tempfile.mkdtemp()) / "out.png"
         plt.savefig(out_path)
@@ -200,11 +216,16 @@ class Predictor(cog.Predictor):
         }
 
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+            info = ydl.extract_info(url)
+
+            if "title" in info:
+                title = info["title"]
+            else:
+                title = ""  # is it possible that the title metadata is unavailable? Continue anyway
 
         paths = [p for p in tmp_dir.glob(f"audio.{ext}")]
         assert (
             len(paths) == 1
         ), "Something unexpected happened. Should be only one match!"
 
-        return paths[0]
+        return paths[0], title
