@@ -154,6 +154,8 @@ class Predictor(cog.Predictor):
         )
         g.set(xlabel=None)
         g.set(ylabel=None)
+        g.set(xlim=(0, 1))
+
 
         out_path = Path(tempfile.mkdtemp()) / "out.png"
         plt.savefig(out_path)
