@@ -58,7 +58,9 @@ class Predictor(cog.Predictor):
 
         # If there is a YouTube url use that.
         if url:
-            audio = self._download(url)
+            audio, title = self._download(url)
+        else:
+            title = audio.name
 
         # Configure a processing chain based on the selected model type.
         pool = Pool()
@@ -120,9 +122,10 @@ class Predictor(cog.Predictor):
         print("running the inference network...")
         run(loader)
 
+        title = "# %s\n" % title
         header = "| model | class | activation |\n"
         bar = "|---|---|---|\n"
-        table = header + bar
+        table = title + header + bar
         for model in models:
             average = np.mean(pool["activations.%s" % model["name"]], axis=0)
 
@@ -180,11 +183,16 @@ class Predictor(cog.Predictor):
         }
 
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+            info = ydl.extract_info(url)
+
+            if "title" in info:
+                title = info["title"]
+            else:
+                title = ""  # is it possible that the title metadata is unavailable? Continue anyway
 
         paths = [p for p in tmp_dir.glob(f"audio.{ext}")]
         assert (
             len(paths) == 1
         ), "Something unexpected happened. Should be only one match!"
 
-        return paths[0]
+        return paths[0], title
