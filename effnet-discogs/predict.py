@@ -94,7 +94,7 @@ class Predictor(cog.Predictor):
         "url",
         type=str,
         default=None,
-        help="YouTube URL to process",
+        help="YouTube URL to process (overrides audio input)",
     )
     @cog.input(
         "top_n",
