@@ -112,12 +112,15 @@ class Predictor(cog.Predictor):
     def predict(self, audio, url, top_n, output_format):
         """Run a single prediction on the model"""
 
-        assert (audio and not url) or (
-            not audio and url
-        ), "Specify either an audio filename or a YouTube url"
+        assert audio or url, "Specify either an audio filename or a YouTube url"
 
         # If there is a YouTube url use that.
         if url:
+            if audio:
+                print(
+                    "Warning: Both `url` and `audio` inputs were specified. "
+                    "The `url` will be process. To process the `audio` input clear the `url` input field."
+                )
             audio, title = self._download(url)
         else:
             title = audio.name
