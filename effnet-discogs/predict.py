@@ -6,7 +6,7 @@ import tempfile
 from itertools import chain
 from textwrap import wrap
 
-import cog
+from cog import BasePredictor, Input, Path
 from essentia.streaming import MonoLoader, TensorflowPredictEffnetDiscogs
 from essentia import Pool, run, reset
 import numpy as np
@@ -26,7 +26,7 @@ def process_labels(label):
 labels = list(map(process_labels, labels))
 
 
-class Predictor(cog.Predictor):
+class Predictor(BasePredictor):
     def setup(self):
         """Load the model into memory and create the Essentia network for predictions"""
 
@@ -43,32 +43,23 @@ class Predictor(cog.Predictor):
         self.loader.audio >> self.tensorflowPredictEffnetDiscogs.signal
         self.tensorflowPredictEffnetDiscogs.predictions >> (self.pool, self.output)
 
-    @cog.input(
-        "audio",
-        type=cog.Path,
-        default=None,
-        help="Audio file to process",
-    )
-    @cog.input(
-        "url",
-        type=str,
-        default=None,
-        help="YouTube URL to process (overrides audio input)",
-    )
-    @cog.input(
-        "top_n",
-        type=int,
-        default=10,
-        help="Top n music styles to show",
-    )
-    @cog.input(
-        "output_format",
-        type=str,
-        default="Visualization",
-        options=["Visualization", "JSON"],
-        help="Output either a bar chart visualization or a JSON blob",
-    )
-    def predict(self, audio, url, top_n, output_format):
+    def predict(
+        self,
+        audio: Path = Input(
+            description="Audio file to process",
+            default=None,
+        ),
+        url: str = Input(
+            description="YouTube URL to process (overrides audio input)",
+            default=None,
+        ),
+        top_n: int = Input(description="Top n music styles to show", default=10),
+        output_format: str = Input(
+            description="Output either a bar chart visualization or a JSON blob",
+            default="Visualization",
+            choices=["Visualization", "JSON"],
+        ),
+    ) -> Path:
         """Run a single prediction on the model"""
 
         assert audio or url, "Specify either an audio filename or a YouTube url"
