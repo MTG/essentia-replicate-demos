@@ -3,57 +3,76 @@
 
 from pathlib import Path
 import tempfile
+from itertools import chain
+from textwrap import wrap
 
-import cog
-import youtube_dl
-# TODO: import TensorflowPredictDiscogsEffnet
-from essentia.streaming import (
-    MonoLoader,
-    FrameCutter,
-    VectorRealToTensor,
-    TensorToPool,
-    TensorflowInputMusiCNN,
-    TensorflowInputVGGish,
-    TensorflowPredict,
-    PoolToTensor,
-    TensorToVectorReal,
-)
-from essentia import Pool, run
+from cog import BasePredictor, Input, Path
+from essentia.streaming import MonoLoader, TensorflowPredictEffnetDiscogs
+from essentia.standard import TensorflowPredict
+from essentia import Pool, run, reset
 import numpy as np
+#import matplotlib.pyplot as plt
+#import seaborn as sns
+#import pandas
+import youtube_dl
 
 from models import models
 
 MODELS_HOME = "/models"
 
-# TODO: clean all unneeded algorithms
+def process_labels(label):
+    genre, style = label.split("---")
+    return f"{style}\n({genre})"
 
-class Predictor(cog.Predictor):
+
+class Predictor(BasePredictor):
     def setup(self):
-        """Load the model into memory to make running multiple predictions efficient"""
+        """Load the model into memory and create the Essentia network for predictions"""
+
+        self.model = "/models/discogs-effnet-bs64-1.pb"
+        self.output = "embedding"
         self.sample_rate = 16000
 
-    # TODO: define model_type as approachability and engagement
-    @cog.input(
-        "audio",
-        type=cog.Path,
-        default=None,
-        help="Audio file to process",
-    )
-    @cog.input(
-        "url",
-        type=str,
-        default=None,
-        help="YouTube URL to process",
-    )
-    @cog.input(
-        "model_type",
-        type=str,
-        default="musicnn-msd-2",
-        options=["musicnn-msd-2", "musicnn-mtt-2", "vggish-audioset-1"],
-        help="Model type (embeddings)",
-    )
-    def predict(self, audio, url, model_type):
-        """Run a single prediction by all models of the selected type"""
+        self.pool = Pool()
+        self.loader = MonoLoader()
+        self.tensorflowPredictEffnetDiscogs = TensorflowPredictEffnetDiscogs(
+            graphFilename=self.model,
+            output="PartitionedCall:1",
+        )
+
+        # Algorithms for specific models.
+        self.tensorflowPredict = {}
+        model_type = "mlp-effnet_b0_3M"
+        for model in models:
+            modelFilename = f"/models/{model['name']}-{model_type}.pb"
+            self.tensorflowPredict[model["name"]] = TensorflowPredict(
+                graphFilename=modelFilename,
+                inputs=["model/Placeholder"],
+                outputs=["model/Softmax"],
+            )
+
+        self.loader.audio >> self.tensorflowPredictEffnetDiscogs.signal
+        self.tensorflowPredictEffnetDiscogs.predictions >> (self.pool, self.output)
+
+
+    def predict(
+        self,
+        audio: Path = Input(
+            description="Audio file to process",
+            default=None,
+        ),
+        url: str = Input(
+            description="YouTube URL to process (overrides audio input)",
+            default=None,
+        ),
+        top_n: int = Input(description="Top n music styles to show", default=10),
+        output_format: str = Input(
+            description="Output either a bar chart visualization or a JSON blob",
+            default="Visualization",
+            choices=["Visualization", "JSON"],
+        ),
+    ) -> Path:
+        """Run a single prediction on the model"""
 
         assert audio or url, "Specify either an audio filename or a YouTube url"
 
@@ -68,76 +87,26 @@ class Predictor(cog.Predictor):
         else:
             title = audio.name
 
-        # Configure a processing chain based on the selected model type.
-        pool = Pool()
-        loader = MonoLoader(filename=str(audio), sampleRate=self.sample_rate)
-
-        # TODO: redefine extractor with the model type
-        patch_hop_size = 0  # No overlap for efficiency
-        batch_size = 256
-
-        if model_type in ["musicnn-msd-2", "musicnn-mtt-2"]:
-            frame_size = 512
-            hop_size = 256
-            patch_size = 187
-            nbands = 96
-            melSpectrogram = TensorflowInputMusiCNN()
-        elif model_type in ["vggish-audioset-1"]:
-            frame_size = 400
-            hop_size = 160
-            patch_size = 96
-            nbands = 64
-            melSpectrogram = TensorflowInputVGGish()
-
-        frameCutter = FrameCutter(
-            frameSize=frame_size,
-            hopSize=hop_size,
-            silentFrames="keep",
-        )
-        vectorRealToTensor = VectorRealToTensor(
-            shape=[batch_size, 1, patch_size, nbands],
-            patchHopSize=patch_hop_size,
-        )
-        tensorToPool = TensorToPool(namespace="model/Placeholder")
-
-        # Algorithms for specific models.
-        tensorflowPredict = {}
-        poolToTensor = {}
-        tensorToVectorReal = {}
-
-        # TODO: redo this part too
-        for model in models:
-            modelFilename = "/models/%s-%s.pb" % (model["name"], model_type)
-            tensorflowPredict[model["name"]] = TensorflowPredict(
-                graphFilename=modelFilename,
-                inputs=["model/Placeholder"],
-                outputs=["model/Sigmoid"],
-            )
-            poolToTensor[model["name"]] = PoolToTensor(namespace="model/Sigmoid")
-            tensorToVectorReal[model["name"]] = TensorToVectorReal()
-
-        # TODO: now we can compress this part with TensorflowPredictDiscogsEffnet
-        # TODO: maybe we have to store some frames in a buffer and then to compute it or just to reuse this code
-        loader.audio >> frameCutter.signal
-        frameCutter.frame >> melSpectrogram.frame
-        melSpectrogram.bands >> vectorRealToTensor.frame
-        vectorRealToTensor.tensor >> tensorToPool.tensor
-
-        for model in [model["name"] for model in models]:
-            tensorToPool.pool >> tensorflowPredict[model].poolIn
-            tensorflowPredict[model].poolOut >> poolToTensor[model].pool
-            (poolToTensor[model].tensor >> tensorToVectorReal[model].tensor)
-            tensorToVectorReal[model].frame >> (pool, "activations.%s" % model)
+        # Reset the network to set the pool in case it was cleared in the previous call.
+        reset(self.loader)
 
         print("running the inference network...")
-        run(loader)
+        self.loader.configure(sampleRate=self.sample_rate, filename=str(audio))
+        run(self.loader)
+
+        # resize embedding in a tensor
+        self.pool.set(["model/Placeholder"], np.hstack(self.pool[self.output]))
 
         title = "# %s\n" % title
         header = "| model | class | activation |\n"
         bar = "|---|---|---|\n"
         table = title + header + bar
+
+        # predict with each model
         for model in models:
-            average = np.mean(pool["activations.%s" % model["name"]], axis=0)
+            results = self.tensorflowPredict[model["name"]](self.pool)
+
+            average = np.mean(results, axis=0)
 
             labels = []
             activations = []
@@ -160,6 +129,8 @@ class Predictor(cog.Predictor):
         out_path = Path(tempfile.mkdtemp()) / "out.md"
         with open(out_path, "w") as f:
             f.write(table)
+
+        print("done!")
         return out_path
 
     def _download(self, url, ext="wav"):
