@@ -6,17 +6,8 @@ import tempfile
 from itertools import chain
 from textwrap import wrap
 
-import cog
-from essentia.streaming import (
-    MonoLoader,
-    FrameCutter,
-    VectorRealToTensor,
-    TensorToPool,
-    TensorflowInputMusiCNN,
-    TensorflowPredict,
-    PoolToTensor,
-    TensorToVectorReal,
-)
+from cog import BasePredictor, Input, Path
+from essentia.streaming import MonoLoader, TensorflowPredictEffnetDiscogs
 from essentia import Pool, run, reset
 import numpy as np
 import matplotlib.pyplot as plt
@@ -35,81 +26,40 @@ def process_labels(label):
 labels = list(map(process_labels, labels))
 
 
-class Predictor(cog.Predictor):
+class Predictor(BasePredictor):
     def setup(self):
         """Load the model into memory and create the Essentia network for predictions"""
 
-        self.model = "/models/210402-122138_dev-multi-node.pb"  # Only supported variant for now. It's a development version!
-        self.input = "melspectrogram"
+        self.model = "/models/discogs-effnet-bs64-1.pb"
         self.output = "activations"
         self.sample_rate = 16000
-        self.patch_size = 128
-        self.batch_size = 32
-        self.patch_hop_size = 65  # so that the activation rate is 1 Hz
-        self.nbands = 96
-        self.frame_size = 512
-        self.hop_size = 256
 
-        # Most Essentia TensorFlow models have a dedicated wrapper algorithm to simplify inference.
-        # While this is a WIP for effnet-discogs, this is an opportunity to learn a bit of
-        # Essentia's streaming mode, which prevents copying intermediate outputs to Python making
-        # it more efficient (among other benefits).
         self.pool = Pool()
-        self.loader = MonoLoader(sampleRate=self.sample_rate)
-        self.frameCutter = FrameCutter(
-            frameSize=self.frame_size,
-            hopSize=self.hop_size,
-            silentFrames="keep",
+        self.loader = MonoLoader()
+        self.tensorflowPredictEffnetDiscogs = TensorflowPredictEffnetDiscogs(
+            graphFilename=self.model
         )
-        self.melSpectrogram = TensorflowInputMusiCNN()
-        self.vectorRealToTensor = VectorRealToTensor(
-            shape=[self.batch_size, 1, self.patch_size, self.nbands],
-            patchHopSize=self.patch_hop_size,
-        )
-        self.tensorToPool = TensorToPool(namespace=self.input)
-        self.tensorflowPredict = TensorflowPredict(
-            graphFilename=self.model,
-            inputs=[self.input],
-            outputs=[self.output],
-        )
-        self.poolToTensor = PoolToTensor(namespace=self.output)
-        self.tensorToVectorReal = TensorToVectorReal()
 
-        self.loader.audio >> self.frameCutter.signal
-        self.frameCutter.frame >> self.melSpectrogram.frame
-        self.melSpectrogram.bands >> self.vectorRealToTensor.frame
-        self.vectorRealToTensor.tensor >> self.tensorToPool.tensor
-        self.tensorToPool.pool >> self.tensorflowPredict.poolIn
-        self.tensorflowPredict.poolOut >> self.poolToTensor.pool
-        self.poolToTensor.tensor >> self.tensorToVectorReal.tensor
-        self.tensorToVectorReal.frame >> (self.pool, self.output)
+        self.loader.audio >> self.tensorflowPredictEffnetDiscogs.signal
+        self.tensorflowPredictEffnetDiscogs.predictions >> (self.pool, self.output)
 
-    @cog.input(
-        "audio",
-        type=cog.Path,
-        default=None,
-        help="Audio file to process",
-    )
-    @cog.input(
-        "url",
-        type=str,
-        default=None,
-        help="YouTube URL to process",
-    )
-    @cog.input(
-        "top_n",
-        type=int,
-        default=10,
-        help="Top n music styles to show",
-    )
-    @cog.input(
-        "output_format",
-        type=str,
-        default="Visualization",
-        options=["Visualization", "JSON"],
-        help="Output either a bar chart visualization or a JSON blob",
-    )
-    def predict(self, audio, url, top_n, output_format):
+    def predict(
+        self,
+        audio: Path = Input(
+            description="Audio file to process",
+            default=None,
+        ),
+        url: str = Input(
+            description="YouTube URL to process (overrides audio input)",
+            default=None,
+        ),
+        top_n: int = Input(description="Top n music styles to show", default=10),
+        output_format: str = Input(
+            description="Output either a bar chart visualization or a JSON blob",
+            default="Visualization",
+            choices=["Visualization", "JSON"],
+        ),
+    ) -> Path:
         """Run a single prediction on the model"""
 
         assert audio or url, "Specify either an audio filename or a YouTube url"
