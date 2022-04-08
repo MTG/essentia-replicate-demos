@@ -69,10 +69,10 @@ class Predictor(BasePredictor):
 
         print("loading audio...")
         self.loader.configure(sampleRate=self.sample_rate, filename=str(audio))
-        audio = self.loader()
+        waveform = self.loader()
 
         print("running the model...")
-        embeddings = self.tensorflowPredictEffnetDiscogs(audio)
+        embeddings = self.tensorflowPredictEffnetDiscogs(waveform)
 
         # resize embedding in a tensor
         embeddings = np.expand_dims(embeddings, (1, 2))
