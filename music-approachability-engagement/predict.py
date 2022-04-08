@@ -1,36 +1,26 @@
 # Prediction interface for Cog ⚙️
 # Reference: https://github.com/replicate/cog/blob/main/docs/python.md
 
-from pathlib import Path
 import tempfile
-from itertools import chain
-from textwrap import wrap
 
 from cog import BasePredictor, Input, Path
-from essentia.streaming import MonoLoader, TensorflowPredictEffnetDiscogs
-from essentia.standard import TensorflowPredict
-from essentia import Pool, run, reset
+from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs, TensorflowPredict
+from essentia import Pool
 import numpy as np
-#import matplotlib.pyplot as plt
-#import seaborn as sns
-#import pandas
 import youtube_dl
 
 from models import models
 
-MODELS_HOME = "/models"
-
-def process_labels(label):
-    genre, style = label.split("---")
-    return f"{style}\n({genre})"
+MODELS_HOME = Path("/models")
 
 
 class Predictor(BasePredictor):
     def setup(self):
         """Load the model into memory and create the Essentia network for predictions"""
 
-        self.model = "/models/discogs-effnet-bs64-1.pb"
-        self.output = "embedding"
+        self.model = str(MODELS_HOME / "discogs-effnet-bs64-1.pb")
+        self.input = "model/Placeholder"
+        self.output = "model/Softmax"
         self.sample_rate = 16000
 
         self.pool = Pool()
@@ -41,19 +31,15 @@ class Predictor(BasePredictor):
         )
 
         # Algorithms for specific models.
-        self.tensorflowPredict = {}
+        self.classifiers = {}
         model_type = "mlp-effnet_b0_3M"
         for model in models:
-            modelFilename = f"/models/{model['name']}-{model_type}.pb"
-            self.tensorflowPredict[model["name"]] = TensorflowPredict(
+            modelFilename = str(MODELS_HOME / f"{model['name']}-{model_type}.pb")
+            self.classifiers[model["name"]] = TensorflowPredict(
                 graphFilename=modelFilename,
-                inputs=["model/Placeholder"],
-                outputs=["model/Softmax"],
+                inputs=[self.input],
+                outputs=[self.output],
             )
-
-        self.loader.audio >> self.tensorflowPredictEffnetDiscogs.signal
-        self.tensorflowPredictEffnetDiscogs.predictions >> (self.pool, self.output)
-
 
     def predict(
         self,
@@ -64,12 +50,6 @@ class Predictor(BasePredictor):
         url: str = Input(
             description="YouTube URL to process (overrides audio input)",
             default=None,
-        ),
-        top_n: int = Input(description="Top n music styles to show", default=10),
-        output_format: str = Input(
-            description="Output either a bar chart visualization or a JSON blob",
-            default="Visualization",
-            choices=["Visualization", "JSON"],
         ),
     ) -> Path:
         """Run a single prediction on the model"""
@@ -87,15 +67,16 @@ class Predictor(BasePredictor):
         else:
             title = audio.name
 
-        # Reset the network to set the pool in case it was cleared in the previous call.
-        reset(self.loader)
-
-        print("running the inference network...")
+        print("loading audio...")
         self.loader.configure(sampleRate=self.sample_rate, filename=str(audio))
-        run(self.loader)
+        audio = self.loader()
+
+        print("running the model...")
+        embeddings = self.tensorflowPredictEffnetDiscogs(audio)
 
         # resize embedding in a tensor
-        self.pool.set(["model/Placeholder"], np.hstack(self.pool[self.output]))
+        embeddings = np.expand_dims(embeddings, (1, 2))
+        self.pool.set(self.input, embeddings)
 
         title = "# %s\n" % title
         header = "| model | class | activation |\n"
@@ -103,10 +84,10 @@ class Predictor(BasePredictor):
         table = title + header + bar
 
         # predict with each model
+        print("running classification heads...")
         for model in models:
-            results = self.tensorflowPredict[model["name"]](self.pool)
-
-            average = np.mean(results, axis=0)
+            results = self.classifiers[model["name"]](self.pool)[self.output]
+            average = np.mean(results.squeeze(), axis=0)
 
             labels = []
             activations = []
