@@ -4,27 +4,26 @@ image: "r8.im/mtg/essentia-transfer-learning-music"
 
 build:
   # set to true if your model requires a GPU
-  gpu: true
-  cuda: "11.2"
+  gpu: false
 
   # a list of ubuntu apt packages to install
   system_packages:
     - "ffmpeg"
 
   # python version in the form '3.8' or '3.8.12'
-  python_version: "3.8"
+  python_version: "3.7"
 
   # a list of packages in the format <package-name>==<version>
   python_packages:
-    - "essentia-tensorflow==2.1b6.dev609"
+    - "essentia-tensorflow==2.1b6.dev778"
     - "numpy==1.21.3"
+    - "seaborn==0.11"
     - "youtube-dl==2021.6.6"
 
   run:
     - mkdir models
-
     # download discogs effnet model and TL-based models
-    - curl -s -o models/discogs-effnet-bs64-1.pb https://essentia.upf.edu/models/music-style-classification/discogs-effnet/discogs-effnet-bs64-1.pb
+    - curl -L -o models/discogs-effnet-bs64-1.pb "https://essentia.upf.edu/models/music-style-classification/discogs-effnet/discogs-effnet-bs64-1.pb"
     - wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1aVJONZFcGApTwKt63SxmvW4SkI4IV4iJ' -O models/approachability-mlp-effnet_b0_3M.pb
     - wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1HG5cI1PLs6ipskxchaIlIAqa10tqWRi1' -O models/engagement-mlp-effnet_b0_3M.pb
 
