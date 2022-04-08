@@ -7,8 +7,7 @@ from itertools import chain
 from textwrap import wrap
 
 from cog import BasePredictor, Input, Path
-from essentia.streaming import MonoLoader, TensorflowPredictEffnetDiscogs
-from essentia import Pool, run, reset
+from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -34,14 +33,10 @@ class Predictor(BasePredictor):
         self.output = "activations"
         self.sample_rate = 16000
 
-        self.pool = Pool()
         self.loader = MonoLoader()
         self.tensorflowPredictEffnetDiscogs = TensorflowPredictEffnetDiscogs(
             graphFilename=self.model
         )
-
-        self.loader.audio >> self.tensorflowPredictEffnetDiscogs.signal
-        self.tensorflowPredictEffnetDiscogs.predictions >> (self.pool, self.output)
 
     def predict(
         self,
@@ -75,14 +70,12 @@ class Predictor(BasePredictor):
         else:
             title = audio.name
 
-        # Reset the network to set the pool in case it was cleared in the previous call.
-        reset(self.loader)
-
-        print("running the inference network...")
+        print("loading audio...")
         self.loader.configure(sampleRate=self.sample_rate, filename=str(audio))
-        run(self.loader)
+        waveform = self.loader()
 
-        activations = self.pool[self.output]
+        print("running the model...")
+        activations = self.tensorflowPredictEffnetDiscogs(waveform)
         activations_mean = np.mean(activations, axis=0)
 
         if output_format == "JSON":
@@ -132,8 +125,6 @@ class Predictor(BasePredictor):
         # Clean-up.
         if url:
             audio.unlink()
-
-        self.pool.clear()
 
         print("done!")
         return out_path
