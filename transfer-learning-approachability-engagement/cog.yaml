@@ -23,9 +23,10 @@ build:
   run:
     - mkdir models
 
-    # TODO: update model names and urls
-    - curl -s -o models/approachability-effnet-discogs.pb https://essentia.upf.edu/models/classifiers/approachability/approachability-effnet-discogs.pb
-    - curl -s -o models/engagement-effnet-discogs.pb https://essentia.upf.edu/models/classifiers/engagement/engagement-effnet-discogs.pb
+    # download discogs effnet model and TL-based models
+    - curl -s -o models/discogs-effnet-bs64-1.pb https://essentia.upf.edu/models/music-style-classification/discogs-effnet/discogs-effnet-bs64-1.pb
+    - wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1aVJONZFcGApTwKt63SxmvW4SkI4IV4iJ' -O models/approachability-mlp-effnet_b0_3M.pb
+    - wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1HG5cI1PLs6ipskxchaIlIAqa10tqWRi1' -O models/engagement-mlp-effnet_b0_3M.pb
 
 # predict.py defines how predictions are run on your model
 predict: "predict.py:Predictor"
