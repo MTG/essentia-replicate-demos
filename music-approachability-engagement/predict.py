@@ -72,7 +72,7 @@ class Predictor(BasePredictor):
         model_type: str = Input(
             description="Regards to the downstream type: 2class, 3class, regression",
             default= "effnet-discogs-test-2class",
-            options=["effnet-discogs-test-2class", "effnet-discogs-test-3class", "effnet-discogs-test-regression"]
+            choices=["effnet-discogs-test-2class", "effnet-discogs-test-3class", "effnet-discogs-test-regression"]
         ),
     ) -> Path:
         """Run a single prediction on the model"""
