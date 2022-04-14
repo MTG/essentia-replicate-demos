@@ -20,15 +20,17 @@ models = {
         "approachability": {
             "name": "approachability-3class",
             "labels": [
-                "not approachable",
-                "approachable",
+                "low",
+                "mid",
+                "high",
             ],
         },
         "engagement": {
             "name": "engagement-3class",
             "labels": [
-                "not engaging",
-                "engaging",
+                "low",
+                "mid",
+                "high",
             ],
         },
     },
