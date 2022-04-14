@@ -49,14 +49,14 @@ class Predictor(BasePredictor):
         model_types = models.keys()
         print(f"model_types: {model_types}")
         # load all models in self.classifiers for all model_types
-        all_models = [models[model_type][key] for model_type in model_types for key in model_type.keys()]
+        all_models = [models[model_type][key] for model_type in model_types for key in models[model_type].keys()]
         # build a dict of dicts to handle classifiers for each model type
         for model in all_models:
             modelFilename = str(MODELS_HOME / f"{model['name']}.pb")
             self.classifiers[model["name"]] = TensorflowPredict(
                 graphFilename=modelFilename,
                 inputs=[self.input],
-                outputs=[self.output],
+                outputs=["model/Identity"] if "regression" in model["name"] else [self.output],
             )
 
     def predict(
@@ -71,7 +71,7 @@ class Predictor(BasePredictor):
         ),
         model_type: str = Input(
             description="Regards to the downstream type: 2class, 3class, regression",
-            default= "effnet-discogs-test-2class",
+            default= "effnet-discogs-test-3class",
             choices=["effnet-discogs-test-2class", "effnet-discogs-test-3class", "effnet-discogs-test-regression"]
         ),
     ) -> Path:
@@ -79,7 +79,7 @@ class Predictor(BasePredictor):
 
         assert audio or url, "Specify either an audio filename or a YouTube url"
 
-        # If there is a YouTube url use that.
+        #If there is a YouTube url use that.
         if url:
             if audio:
                 print(
@@ -159,22 +159,20 @@ class Predictor(BasePredictor):
         table = initialize_table(model_type, title)
 
         # define a list of models for the model_type
-        model_list = [models[model_type][key] for model_type in models.keys() for key in model_type]
-        print(model_list)
+        model_list = [models[model_type][key] for key in models[model_type].keys()]
 
         print("running classification heads...")
         if model_type == "effnet-discogs-test-regression":
             # predict with each regression model
             for model in model_list:
-                results = self.classifiers[model["name"]](self.pool)[self.output]
+                results = self.classifiers[model["name"]](self.pool)["model/Identity"]
                 average = np.mean(results.squeeze(), axis=0)
                 std = np.std(results.squeeze(), axis=0)
 
                 value = f"{average:.2f}±{std:.2f}"
-                value = "<br>".join(value)
 
                 table += f"{model['name']} | {value}\n"
-                if model != models[-1]:
+                if model != model_list[-1]:
                     table += "||<hr>|\n"  # separator for readability
         else:
             # predict with each classification model
@@ -197,6 +195,6 @@ class Predictor(BasePredictor):
                 activations = "<br>".join(activations)
 
                 table += f"{model['name']} | {labels} | {activations}\n"
-                if model != models[-1]:
+                if model != model_list[-1]:
                     table += "||<hr>|<hr>|\n"  # separator for readability
         return table
