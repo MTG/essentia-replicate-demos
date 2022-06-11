@@ -1,0 +1,38 @@
+# Configuration for Cog ⚙️
+# Reference: https://github.com/replicate/cog/blob/main/docs/yaml.md
+image: "r8.im/mtg/music-arousal-valence"
+
+build:
+  # set to true if your model requires a GPU
+  gpu: false
+
+  # a list of ubuntu apt packages to install
+  system_packages:
+    - "ffmpeg"
+
+  # python version in the form '3.8' or '3.8.12'
+  python_version: "3.7"
+
+  # a list of packages in the format <package-name>==<version>
+  python_packages:
+    - "essentia-tensorflow==2.1b6.dev778"
+    - "numpy==1.21.3"
+    - "seaborn==0.11"
+    - "youtube-dl==2021.6.6"
+
+  run:
+    - mkdir models
+    # download discogs effnet model and TL-based models
+    - curl -L -o models/discogs-effnet-bs64-1.pb "https://essentia.upf.edu/models/music-style-classification/discogs-effnet/discogs-effnet-bs64-1.pb"
+    - curl -L -o models/msd-musicnn-1.pb "https://essentia.upf.edu/models/autotagging/msd/msd-musicnn-1.pb"
+    - curl -L -o models/audioset-vggish-3.pb "https://essentia.upf.edu/models/feature-extractors/vggish/audioset-vggish-3.pb"
+    # classifiers
+    - curl -L -o models/deam-audioset-vggish-1.pb "https://docs.google.com/uc?export=download&id=1Gg6yyQKSDWKx2-oUN89QE5BA5HFHLPbN"
+    - curl -L -o models/deam-msd-musicnn-1.pb "https://docs.google.com/uc?export=download&id=1OhIlvE_dGkoq0GSASMygsLfIPcaeLJZs"
+    - curl -L -o models/emomusic-audioset-vggish-1.pb "https://docs.google.com/uc?export=download&id=1nfpWISSu2GJ6c8XFSiRYN69fDRssOwbE"
+    - curl -L -o models/emomusic-msd-musicnn-1.pb "https://docs.google.com/uc?export=download&id=10i4_vwotCreLKGt2nWL0n_CbOLY0vYQ-"
+    - curl -L -o models/muse-audioset-vggish-1.pb "https://docs.google.com/uc?export=download&id=1aBMhvOCKnysX96vhsxTVbFBuStBtJ3wp"
+    - curl -L -o models/muse-msd-musicnn-1.pb "https://docs.google.com/uc?export=download&id=1OydXtjkiXzgbD2i7QGycX6mQG0iImRtP"
+
+# predict.py defines how predictions are run on your model
+predict: "predict.py:Predictor"
