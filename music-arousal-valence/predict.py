@@ -12,8 +12,10 @@ from essentia.standard import (
     TensorflowPredict,
 )
 from essentia import Pool
+import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
+import seaborn as sns
 import youtube_dl
 
 
@@ -106,19 +108,27 @@ class Predictor(BasePredictor):
         classifier_name = f"{dataset}-{embedding_type}"
         results = self.classifiers[classifier_name](self.pool)[self.output]
         results = np.mean(results.squeeze(), axis=0)
-        arousal = results[0]
-        valence = results[1]
 
-        r, theta = polar(arousal + 1j * valence)
-        r = min(r, 1)
+        # Manual normalization (1, 9) -> (-1, 1)
+        results = (results - 5) / 4
 
-        ax = plt.subplot(111, polar=True)
-        ax.scatter(x=theta, y=r, s=200, marker="o", linewidths=3)
-        plt.thetagrids(range(0, 360, 90), ("A (+)", "V (+)", "A (-)", "V (-)"))
-        ax.set_rticks([])
-        ax.set_rmax(1.02)
-        ax.annotate(f"A:{arousal:.1f}, V:{valence:.1f}", (theta, r - 0.15))
-        plt.subplots_adjust(top=0.85)
+        valence = results[0]
+        arousal = results[1]
+
+        sns.set_style("darkgrid")
+        g = sns.lmplot(
+            data=pd.DataFrame({"arousal": [arousal], "valence": [valence]}),
+            x="valence",
+            y="arousal",
+            markers="x",
+            scatter_kws={"s": 100},
+        )
+
+        g.set(ylim=(-1, 1))
+        g.set(xlim=(-1, 1))
+        plt.plot([-1, 1], [0, 0], linewidth=1.5, color="grey")
+        plt.plot([0, 0], [-1, 1], linewidth=1.5, color="grey")
+        plt.subplots_adjust(top=0.95, bottom=0.1, left=0.15)
         plt.title(title)
 
         out_path = Path(tempfile.mkdtemp()) / "out.png"
