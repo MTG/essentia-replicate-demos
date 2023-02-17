@@ -4,7 +4,7 @@
 from pathlib import Path
 import tempfile
 
-import cog
+from cog import BasePredictor, Input, Path
 import youtube_dl
 from essentia.streaming import (
     MonoLoader,
@@ -25,31 +25,27 @@ from models import models
 MODELS_HOME = "/models"
 
 
-class Predictor(cog.Predictor):
+class Predictor(BasePredictor):
     def setup(self):
         """Load the model into memory to make running multiple predictions efficient"""
         self.sample_rate = 16000
 
-    @cog.input(
-        "audio",
-        type=cog.Path,
-        default=None,
-        help="Audio file to process",
-    )
-    @cog.input(
-        "url",
-        type=str,
-        default=None,
-        help="YouTube URL to process (overrides audio input)",
-    )
-    @cog.input(
-        "model_type",
-        type=str,
-        default="musicnn-msd-2",
-        options=["musicnn-msd-2", "musicnn-mtt-2", "vggish-audioset-1"],
-        help="Model type (embeddings)",
-    )
-    def predict(self, audio, url, model_type):
+    def predict(
+        self,
+        audio: Path = Input(
+            description="Audio file to process",
+            default=None,
+        ),
+        url: str = Input(
+            description="YouTube URL to process (overrides audio input)",
+            default="",
+        ),
+        model_type: str = Input(
+            description="Model type (embeddings)",
+            default="musicnn-msd-2",
+            choices=["musicnn-msd-2", "musicnn-mtt-2", "vggish-audioset-1"],
+        )
+    ) -> Path:
         """Run a single prediction by all models of the selected type"""
 
         assert audio or url, "Specify either an audio filename or a YouTube url"
