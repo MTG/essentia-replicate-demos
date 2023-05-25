@@ -78,7 +78,11 @@ class Predictor(BasePredictor):
             title = audio.name
 
         print("loading audio...")
-        self.loader.configure(sampleRate=self.sample_rate, filename=str(audio))
+        self.loader.configure(
+            sampleRate=self.sample_rate,
+            resampleQuality=4,
+            filename=str(audio),
+        )
         waveform = self.loader()
 
         print("running the model...")
