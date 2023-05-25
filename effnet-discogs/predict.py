@@ -43,6 +43,7 @@ class Predictor(BasePredictor):
         self.tensorflowPredictEffnetDiscogs = TensorflowPredictEffnetDiscogs(
             graphFilename=self.embedding_model_file,
             output="PartitionedCall:1",
+            patchHopSize=128,  # remove overlap between patches for efficiency
         )
         self.classification_model = TensorflowPredict2D(
             graphFilename=self.classification_model_file,
