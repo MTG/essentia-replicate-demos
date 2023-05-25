@@ -13,7 +13,11 @@ import pandas
 import seaborn as sns
 import youtube_dl
 from cog import BasePredictor, Input, Path
-from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs, TensorflowPredict2D
+from essentia.standard import (
+    MonoLoader,
+    TensorflowPredictEffnetDiscogs,
+    TensorflowPredict2D,
+)
 
 from labels import labels
 
@@ -102,7 +106,12 @@ class Predictor(BasePredictor):
 
         result = {
             "label": list(
-                chain(*[[processed_labels[idx]] * activations.shape[0] for idx in top_n_idx])
+                chain(
+                    *[
+                        [processed_labels[idx]] * activations.shape[0]
+                        for idx in top_n_idx
+                    ]
+                )
             ),
             "activation": list(chain(*[activations[:, idx] for idx in top_n_idx])),
         }
