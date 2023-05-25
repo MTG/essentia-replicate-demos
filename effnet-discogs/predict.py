@@ -7,7 +7,7 @@ from itertools import chain
 from textwrap import wrap
 
 from cog import BasePredictor, Input, Path
-from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs
+from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs, TensorflowPredict2D
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -29,13 +29,20 @@ class Predictor(BasePredictor):
     def setup(self):
         """Load the model into memory and create the Essentia network for predictions"""
 
-        self.model = "/models/discogs-effnet-bs64-1.pb"
+        self.embedding_model_file = "/models/discogs-effnet-bs64-1.pb"
+        self.classification_model_file = "/models/genre_discogs400-discogs-effnet-1.pb"
         self.output = "activations"
         self.sample_rate = 16000
 
         self.loader = MonoLoader()
         self.tensorflowPredictEffnetDiscogs = TensorflowPredictEffnetDiscogs(
-            graphFilename=self.model
+            graphFilename=self.embedding_model_file,
+            output="PartitionedCall:1",
+        )
+        self.classification_model = TensorflowPredict2D(
+            graphFilename=self.classification_model_file,
+            input="serving_default_model_Placeholder",
+            output="PartitionedCall:0",
         )
 
     def predict(
@@ -75,7 +82,8 @@ class Predictor(BasePredictor):
         waveform = self.loader()
 
         print("running the model...")
-        activations = self.tensorflowPredictEffnetDiscogs(waveform)
+        embeddings = self.tensorflowPredictEffnetDiscogs(waveform)
+        activations = self.classification_model(embeddings)
         activations_mean = np.mean(activations, axis=0)
 
         if output_format == "JSON":
