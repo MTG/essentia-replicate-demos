@@ -16,10 +16,10 @@ build:
   python_packages:
     - "essentia-tensorflow==2.1b6.dev1034"
     - "seaborn==0.11"
-    - "youtube-dl==2021.6.6"
   
   # commands run after the environment is setup
   run:
+    -  pip install --upgrade --force-reinstall git+https://github.com/ytdl-org/youtube-dl.git
     - mkdir models
     - curl -L -o models/discogs-effnet-bs64-1.pb "https://essentia.upf.edu/models/music-style-classification/discogs-effnet/discogs-effnet-bs64-1.pb"
     - "echo env is ready!"
