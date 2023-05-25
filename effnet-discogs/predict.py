@@ -1,18 +1,19 @@
 # Prediction interface for Cog ⚙️
 # Reference: https://github.com/replicate/cog/blob/main/docs/python.md
 
-from pathlib import Path
+import json
 import tempfile
 from itertools import chain
+from pathlib import Path
 from textwrap import wrap
 
-from cog import BasePredictor, Input, Path
-from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs, TensorflowPredict2D
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas
+import seaborn as sns
 import youtube_dl
+from cog import BasePredictor, Input, Path
+from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs, TensorflowPredict2D
 
 from labels import labels
 
@@ -22,7 +23,7 @@ def process_labels(label):
     return f"{style}\n({genre})"
 
 
-labels = list(map(process_labels, labels))
+processed_labels = list(map(process_labels, labels))
 
 
 class Predictor(BasePredictor):
@@ -91,14 +92,17 @@ class Predictor(BasePredictor):
         activations_mean = np.mean(activations, axis=0)
 
         if output_format == "JSON":
-            return dict(zip(labels, activations_mean))
+            out_path = Path(tempfile.mkdtemp()) / "out.json"
+            with open(out_path, "w") as f:
+                json.dump(dict(zip(labels, activations_mean.tolist())), f)
+            return out_path
 
         print("plotting...")
         top_n_idx = np.argsort(activations_mean)[::-1][:top_n]
 
         result = {
             "label": list(
-                chain(*[[labels[idx]] * activations.shape[0] for idx in top_n_idx])
+                chain(*[[processed_labels[idx]] * activations.shape[0] for idx in top_n_idx])
             ),
             "activation": list(chain(*[activations[:, idx] for idx in top_n_idx])),
         }
