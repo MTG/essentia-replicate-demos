@@ -1,6 +1,6 @@
 # define the model labels for approachability and engagement per model_type
 models = {
-    "effnet-discogs-test-2class":{
+    "2 classes":{
         "approachability": {
             "name": "approachability-2class",
             "labels": [
@@ -16,7 +16,7 @@ models = {
             ],
         },
     },
-    "effnet-discogs-test-3class":{
+    "3 classes":{
         "approachability": {
             "name": "approachability-3class",
             "labels": [
@@ -34,7 +34,7 @@ models = {
             ],
         },
     },
-    "effnet-discogs-test-regression":{
+    "regression":{
         "approachability": {
             "name": "approachability-regression",
             "labels": [

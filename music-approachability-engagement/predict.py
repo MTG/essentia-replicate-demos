@@ -14,7 +14,7 @@ MODELS_HOME = Path("/models")
 
 
 def initialize_table(model_type: str, title: str):
-    if model_type == "effnet-discogs-test-regression":
+    if model_type == "regression":
         title = "# %s\n" % title
         header = "| model | value |\n"
         bar = "|---|---|\n"
@@ -70,8 +70,8 @@ class Predictor(BasePredictor):
         ),
         model_type: str = Input(
             description="Regards to the downstream type: 2class, 3class, regression",
-            default= "effnet-discogs-test-3class",
-            choices=["effnet-discogs-test-2class", "effnet-discogs-test-3class", "effnet-discogs-test-regression"]
+            default= "regression",
+            choices=["regression", "2 classes", "3 classes"]
         ),
     ) -> Path:
         """Run a single prediction on the model"""
@@ -158,7 +158,7 @@ class Predictor(BasePredictor):
         model_list = [models[model_type][key] for key in models[model_type].keys()]
 
         print("running classification heads...")
-        if model_type == "effnet-discogs-test-regression":
+        if model_type == "regression":
             # predict with each regression model
             for model in model_list:
                 results = self.classifiers[model["name"]](embeddings)
