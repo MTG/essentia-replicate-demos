@@ -1,6 +1,6 @@
 # Classification of music approachability and engagement
 
-This demo runs transfer learning models to estimate music approachability and engagement using *effnet-discogs* embeddings. We include three model types, providing different outcome formats: `two-classes`, `three-class` and `regression` with continuous values:
+This demo runs transfer learning models to estimate music approachability and engagement using *effnet-discogs* embeddings. We include three model types, providing different outcome formats: `two classes`, `three classes` and `regression` with continuous values:
 
 * **two classes**:  low, and high approachability and engagement.
 * **three classes**: low, mid, and high approachability and engagement.
