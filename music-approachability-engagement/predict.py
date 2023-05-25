@@ -169,7 +169,7 @@ class Predictor(BasePredictor):
 
                 table += f"{model['name']} | {value}\n"
                 if model != model_list[-1]:
-                    table += "||<hr>|\n"  # separator for readability
+                    table += "|||\n"  # separator for readability
         else:
             # predict with each classification model
             for model in model_list:
@@ -192,5 +192,5 @@ class Predictor(BasePredictor):
 
                 table += f"{model['name']} | {labels} | {activations}\n"
                 if model != model_list[-1]:
-                    table += "||<hr>|<hr>|\n"  # separator for readability
+                    table += "||||\n"  # separator for readability
         return table
