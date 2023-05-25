@@ -4,8 +4,7 @@
 import tempfile
 
 from cog import BasePredictor, Input, Path
-from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs, TensorflowPredict
-from essentia import Pool
+from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs, TensorflowPredict2D
 import numpy as np
 import youtube_dl
 
@@ -36,11 +35,11 @@ class Predictor(BasePredictor):
         self.output = "model/Softmax"
         self.sample_rate = 16000
 
-        self.pool = Pool()
         self.loader = MonoLoader()
         self.tensorflowPredictEffnetDiscogs = TensorflowPredictEffnetDiscogs(
             graphFilename=self.model,
             output="PartitionedCall:1",
+            patchHopSize=128,
         )
 
         # Algorithms for specific models.
@@ -53,10 +52,10 @@ class Predictor(BasePredictor):
         # build a dict of dicts to handle classifiers for each model type
         for model in all_models:
             modelFilename = str(MODELS_HOME / f"{model['name']}.pb")
-            self.classifiers[model["name"]] = TensorflowPredict(
+            self.classifiers[model["name"]] = TensorflowPredict2D(
                 graphFilename=modelFilename,
-                inputs=[self.input],
-                outputs=["model/Identity"] if "regression" in model["name"] else [self.output],
+                input=self.input,
+                output="model/Identity" if "regression" in model["name"] else self.output,
             )
 
     def predict(
@@ -91,7 +90,7 @@ class Predictor(BasePredictor):
             title = audio.name
 
         print("loading audio...")
-        self.loader.configure(sampleRate=self.sample_rate, filename=str(audio))
+        self.loader.configure(sampleRate=self.sample_rate, filename=str(audio), resampleQuality=4)
         waveform = self.loader()
 
         table = self._run_models(waveform, model_type, title)
@@ -151,9 +150,6 @@ class Predictor(BasePredictor):
     def _run_models(self, waveform: np.ndarray, model_type: str, title: str):
         embeddings = self.tensorflowPredictEffnetDiscogs(waveform)
 
-        # resize embedding in a tensor
-        embeddings = np.expand_dims(embeddings, (1, 2))
-        self.pool.set(self.input, embeddings)
 
         # the header and bar table should change for a regression model
         table = initialize_table(model_type, title)
@@ -165,7 +161,7 @@ class Predictor(BasePredictor):
         if model_type == "effnet-discogs-test-regression":
             # predict with each regression model
             for model in model_list:
-                results = self.classifiers[model["name"]](self.pool)["model/Identity"]
+                results = self.classifiers[model["name"]](embeddings)
                 average = np.mean(results.squeeze(), axis=0)
                 std = np.std(results.squeeze(), axis=0)
 
@@ -177,7 +173,7 @@ class Predictor(BasePredictor):
         else:
             # predict with each classification model
             for model in model_list:
-                results = self.classifiers[model["name"]](self.pool)[self.output]
+                results = self.classifiers[model["name"]](embeddings)
                 average = np.mean(results.squeeze(), axis=0)
 
                 labels = []
