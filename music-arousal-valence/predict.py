@@ -4,19 +4,18 @@
 import tempfile
 from cmath import polar
 
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import youtube_dl
 from cog import BasePredictor, Input, Path
 from essentia.standard import (
     MonoLoader,
     TensorflowPredictVGGish,
     TensorflowPredictMusiCNN,
-    TensorflowPredict,
+    TensorflowPredict2D,
 )
-from essentia import Pool
-import pandas as pd
-import numpy as np
 from matplotlib import pyplot as plt
-import seaborn as sns
-import youtube_dl
 
 
 MODELS_HOME = Path("/models")
@@ -31,14 +30,17 @@ class Predictor(BasePredictor):
 
         self.sample_rate = 16000
 
-        self.pool = Pool()
         self.loader = MonoLoader()
         self.embeddings = {
             "msd-musicnn": TensorflowPredictMusiCNN(
-                graphFilename=self.musicnn_graph, output="model/dense/BiasAdd"
+                graphFilename=self.musicnn_graph,
+                output="model/dense/BiasAdd",
+                patchHopSize=187,
             ),
             "audioset-vggish": TensorflowPredictVGGish(
-                graphFilename=self.vggish_graph, output="model/vggish/embeddings"
+                graphFilename=self.vggish_graph,
+                output="model/vggish/embeddings",
+                patchHopSize=96,
             ),
         }
 
@@ -53,10 +55,10 @@ class Predictor(BasePredictor):
             for embedding in self.embeddings.keys():
                 classifier_name = f"{dataset}-{embedding}"
                 graph_filename = str(MODELS_HOME / f"{classifier_name}-1.pb")
-                self.classifiers[classifier_name] = TensorflowPredict(
+                self.classifiers[classifier_name] = TensorflowPredict2D(
                     graphFilename=graph_filename,
-                    inputs=[self.input],
-                    outputs=[self.output],
+                    input=self.input,
+                    output=self.output,
                 )
 
     def predict(
@@ -96,17 +98,17 @@ class Predictor(BasePredictor):
             title = audio.name
 
         print("loading audio...")
-        self.loader.configure(sampleRate=self.sample_rate, filename=str(audio))
+        self.loader.configure(
+            sampleRate=self.sample_rate,
+            filename=str(audio),
+            resampleQuality=4,
+        )
         waveform = self.loader()
 
         embeddings = self.embeddings[embedding_type](waveform)
 
-        # resize embedding in a tensor
-        embeddings = np.expand_dims(embeddings, (1, 2))
-        self.pool.set(self.input, embeddings)
-
         classifier_name = f"{dataset}-{embedding_type}"
-        results = self.classifiers[classifier_name](self.pool)[self.output]
+        results = self.classifiers[classifier_name](embeddings)
         results = np.mean(results.squeeze(), axis=0)
 
         # Manual normalization (1, 9) -> (-1, 1)
