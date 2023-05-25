@@ -14,7 +14,7 @@ build:
 
   # a list of packages in the format <package-name>==<version>
   python_packages:
-    - "essentia-tensorflow==2.1b6.dev778"
+    - "essentia-tensorflow==2.1b6.dev1034"
     - "seaborn==0.11"
     - "youtube-dl==2021.6.6"
   
