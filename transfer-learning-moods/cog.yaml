@@ -44,13 +44,5 @@ build:
     - curl -s -o models/mood_sad-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/mood_sad/mood_sad-musicnn-mtt-2.pb
     - curl -s -o models/mood_sad-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/mood_sad/mood_sad-vggish-audioset-1.pb
 
-    - curl -s -o models/mood_acoustic-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/mood_acoustic/mood_acoustic-musicnn-msd-2.pb
-    - curl -s -o models/mood_acoustic-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/mood_acoustic/mood_acoustic-musicnn-mtt-2.pb
-    - curl -s -o models/mood_acoustic-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/mood_acoustic/mood_acoustic-vggish-audioset-1.pb
-
-    - curl -s -o models/mood_acoustic-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/mood_acoustic/mood_acoustic-musicnn-msd-2.pb
-    - curl -s -o models/mood_acoustic-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/mood_acoustic/mood_acoustic-musicnn-mtt-2.pb
-    - curl -s -o models/mood_acoustic-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/mood_acoustic/mood_acoustic-vggish-audioset-1.pb
-
 # predict.py defines how predictions are run on your model
 predict: "predict.py:Predictor"
