@@ -22,10 +22,10 @@ build:
   run:
     - pip install --upgrade --force-reinstall git+https://github.com/ytdl-org/youtube-dl.git
     - mkdir models
-    # download discogs effnet model and TL-based models
+    # download embedding models
     - curl -L -o models/msd-musicnn-1.pb "https://essentia.upf.edu/models/feature-extractors/musicnn/msd-musicnn-1.pb"
     - curl -L -o models/audioset-vggish-3.pb "https://essentia.upf.edu/models/feature-extractors/vggish/audioset-vggish-3.pb"
-    # classifiers
+    # download downstream classification models
     - curl -L -o models/deam-audioset-vggish-1.pb "https://essentia.upf.edu/models/classification-heads/deam/deam-audioset-vggish-1.pb"
     - curl -L -o models/deam-msd-musicnn-1.pb "https://essentia.upf.edu/models/classification-heads/deam/deam-msd-musicnn-1.pb"
     - curl -L -o models/emomusic-audioset-vggish-1.pb "https://essentia.upf.edu/models/classification-heads/emomusic/emomusic-audioset-vggish-1.pb"
