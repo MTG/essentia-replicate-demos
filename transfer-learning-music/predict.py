@@ -47,7 +47,6 @@ class Predictor(BasePredictor):
             choices=[
                 "effnet-discogs",
                 "musicnn-msd",
-                "musicnn-mtt",
                 "vggish-audioset",
             ],
         ),
