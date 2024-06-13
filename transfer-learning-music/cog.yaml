@@ -4,84 +4,227 @@ image: "r8.im/mtg/essentia-transfer-learning-music"
 
 build:
   # set to true if your model requires a GPU
-  gpu: true
-  cuda: "11.2"
+  gpu: false
+  # cuda: "11.2"
 
   # a list of ubuntu apt packages to install
   system_packages:
     - "ffmpeg"
 
   # python version in the form '3.8' or '3.8.12'
-  python_version: "3.8"
+  python_version: "3.10"
 
   # a list of packages in the format <package-name>==<version>
   python_packages:
-    - "essentia-tensorflow==2.1b6.dev609"
+    - "essentia-tensorflow==2.1b6.dev1110"
     - "numpy==1.21.3"
     - "youtube-dl==2021.6.6"
 
   run:
     - mkdir models
 
-    - curl -s -o models/genre_dortmund-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/genre_dortmund/genre_dortmund-musicnn-msd-2.pb
-    - curl -s -o models/genre_dortmund-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/genre_dortmund/genre_dortmund-musicnn-mtt-2.pb
-    - curl -s -o models/genre_dortmund-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/genre_dortmund/genre_dortmund-vggish-audioset-1.pb
+    # embeddings models
+    - curl -s -o models/discogs-effnet-bs64-1.pb https://essentia.upf.edu/models/feature-extractors/discogs-effnet/discogs-effnet-bs64-1.pb
+    - curl -s -o models/msd-musicnn-1.pb https://essentia.upf.edu/models/feature-extractors/musicnn/msd-musicnn-1.pb
+    - curl -s -o models/audioset-vggish-3.pb https://essentia.upf.edu/models/feature-extractors/vggish/audioset-vggish-3.pb
 
-    - curl -s -o models/genre_electronic-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/genre_electronic/genre_electronic-musicnn-msd-2.pb
-    - curl -s -o models/genre_electronic-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/genre_electronic/genre_electronic-musicnn-mtt-2.pb
-    - curl -s -o models/genre_electronic-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/genre_electronic/genre_electronic-vggish-audioset-1.pb
+    # effnet models
 
-    - curl -s -o models/genre_rosamerica-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/genre_rosamerica/genre_rosamerica-musicnn-msd-2.pb
-    - curl -s -o models/genre_rosamerica-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/genre_rosamerica/genre_rosamerica-musicnn-mtt-2.pb
-    - curl -s -o models/genre_rosamerica-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/genre_rosamerica/genre_rosamerica-vggish-audioset-1.pb
+    # genre models 
+    # - curl -s -o models/fma_small-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/fma_small/fma_small-discogs-effnet-1.pb
+    # - curl -s -o models/genre_dortmund-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/genre_dortmund/genre_dortmund-discogs-effnet-1.pb
+    - curl -s -o models/genre_discogs400-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/genre_discogs400/genre_discogs400-discogs-effnet-1.pb
+    # - curl -s -o models/genre_electronic-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/genre_electronic/genre_electronic-discogs-effnet-1.pb
+    # - curl -s -o models/genre_rosamerica-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/genre_rosamerica/genre_rosamerica-discogs-effnet-1.pb
+    # - curl -s -o models/genre_tzanetakis-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/genre_tzanetakis/genre_tzanetakis-discogs-effnet-1.pb
+    - curl -s -o models/mtg_jamendo_genre-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/mtg_jamendo_genre/mtg_jamendo_genre-discogs-effnet-1.pb
 
-    - curl -s -o models/genre_tzanetakis-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/genre_tzanetakis/genre_tzanetakis-musicnn-msd-2.pb
-    - curl -s -o models/genre_tzanetakis-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/genre_tzanetakis/genre_tzanetakis-musicnn-mtt-2.pb
-    - curl -s -o models/genre_tzanetakis-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/genre_tzanetakis/genre_tzanetakis-vggish-audioset-1.pb
+    # mood models
+    - curl -s -o models/mood_acoustic-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/mood_acoustic/mood_acoustic-discogs-effnet-1.pb
+    - curl -s -o models/mood_aggressive-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/mood_aggressive/mood_aggressive-discogs-effnet-1.pb
+    - curl -s -o models/mood_electronic-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/mood_electronic/mood_electronic-discogs-effnet-1.pb
+    - curl -s -o models/mood_happy-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/mood_happy/mood_happy-discogs-effnet-1.pb
+    - curl -s -o models/mood_party-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/mood_party/mood_party-discogs-effnet-1.pb
+    - curl -s -o models/mood_relaxed-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/mood_relaxed/mood_relaxed-discogs-effnet-1.pb
+    - curl -s -o models/mood_sad-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/mood_sad/mood_sad-discogs-effnet-1.pb
+    - curl -s -o models/mtg_jamendo_moodtheme-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.pb
 
-    - curl -s -o models/mood_acoustic-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/mood_acoustic/mood_acoustic-musicnn-msd-2.pb
-    - curl -s -o models/mood_acoustic-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/mood_acoustic/mood_acoustic-musicnn-mtt-2.pb
-    - curl -s -o models/mood_acoustic-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/mood_acoustic/mood_acoustic-vggish-audioset-1.pb
+    # other models
+    # - curl -s -o models/approachability_2c-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/approachability/approachability_2c-discogs-effnet-1.pb
+    # - curl -s -o models/approachability_3c-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/approachability/approachability_3c-discogs-effnet-1.pb
+    - curl -s -o models/approachability_regression-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/approachability/approachability_regression-discogs-effnet-1.pb
+    - curl -s -o models/danceability-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/danceability/danceability-discogs-effnet-1.pb
+    # - curl -s -o models/engagement_2c-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/engagement/engagement_2c-discogs-effnet-1.pb
+    # - curl -s -o models/engagement_3c-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/engagement/engagement_3c-discogs-effnet-1.pb
+    - curl -s -o models/engagement_regression-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/engagement/engagement_regression-discogs-effnet-1.pb
+    - curl -s -o models/gender-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/gender/gender-discogs-effnet-1.pb
+    - curl -s -o models/mtt-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/mtt/mtt-discogs-effnet-1.pb
+    - curl -s -o models/mtg_jamendo_instrument-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/mtg_jamendo_instrument/mtg_jamendo_instrument-discogs-effnet-1.pb
+    # - curl -s -o models/mtg_jamendo_top50tags-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/mtg_jamendo_top50tags/mtg_jamendo_top50tags-discogs-effnet-1.pb
+    # - curl -s -o models/nsynth_acoustic_electronic-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/nsynth_acoustic_electronic/nsynth_acoustic_electronic-discogs-effnet-1.pb
+    # - curl -s -o models/nsynth_bright_dark-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/nsynth_bright_dark/nsynth_bright_dark-discogs-effnet-1.pb
+    # - curl -s -o models/nsynth_instrument-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/nsynth_instrument/nsynth_instrument-discogs-effnet-1.pb
+    # - curl -s -o models/nsynth_reverb-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/nsynth_reverb/nsynth_reverb-discogs-effnet-1.pb
+    - curl -s -o models/timbre-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/timbre/timbre-discogs-effnet-1.pb
+    - curl -s -o models/tonal_atonal-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/tonal_atonal/tonal_atonal-discogs-effnet-1.pb
+    - curl -s -o models/voice_instrumental-discogs-effnet-1.pb https://essentia.upf.edu/models/classification-heads/voice_instrumental/voice_instrumental-discogs-effnet-1.pb
 
-    - curl -s -o models/mood_aggressive-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/mood_aggressive/mood_aggressive-musicnn-msd-2.pb
-    - curl -s -o models/mood_aggressive-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/mood_aggressive/mood_aggressive-musicnn-mtt-2.pb
-    - curl -s -o models/mood_aggressive-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/mood_aggressive/mood_aggressive-vggish-audioset-1.pb
+    # genre models 
+    # - curl -s -o models/fma_small-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/fma_small/fma_small-discogs-effnet-1.json
+    # - curl -s -o models/genre_dortmund-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/genre_dortmund/genre_dortmund-discogs-effnet-1.json
+    - curl -s -o models/genre_discogs400-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/genre_discogs400/genre_discogs400-discogs-effnet-1.json
+    # - curl -s -o models/genre_electronic-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/genre_electronic/genre_electronic-discogs-effnet-1.json
+    # - curl -s -o models/genre_rosamerica-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/genre_rosamerica/genre_rosamerica-discogs-effnet-1.json
+    # - curl -s -o models/genre_tzanetakis-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/genre_tzanetakis/genre_tzanetakis-discogs-effnet-1.json
+    - curl -s -o models/mtg_jamendo_genre-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/mtg_jamendo_genre/mtg_jamendo_genre-discogs-effnet-1.json
 
-    - curl -s -o models/mood_electronic-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/mood_electronic/mood_electronic-musicnn-msd-2.pb
-    - curl -s -o models/mood_electronic-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/mood_electronic/mood_electronic-musicnn-mtt-2.pb
-    - curl -s -o models/mood_electronic-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/mood_electronic/mood_electronic-vggish-audioset-1.pb
+    # mood models
+    - curl -s -o models/mood_acoustic-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/mood_acoustic/mood_acoustic-discogs-effnet-1.json
+    - curl -s -o models/mood_aggressive-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/mood_aggressive/mood_aggressive-discogs-effnet-1.json
+    - curl -s -o models/mood_electronic-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/mood_electronic/mood_electronic-discogs-effnet-1.json
+    - curl -s -o models/mood_happy-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/mood_happy/mood_happy-discogs-effnet-1.json
+    - curl -s -o models/mood_party-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/mood_party/mood_party-discogs-effnet-1.json
+    - curl -s -o models/mood_relaxed-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/mood_relaxed/mood_relaxed-discogs-effnet-1.json
+    - curl -s -o models/mood_sad-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/mood_sad/mood_sad-discogs-effnet-1.json
+    - curl -s -o models/mtg_jamendo_moodtheme-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.json
 
-    - curl -s -o models/mood_happy-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/mood_happy/mood_happy-musicnn-msd-2.pb
-    - curl -s -o models/mood_happy-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/mood_happy/mood_happy-musicnn-mtt-2.pb
-    - curl -s -o models/mood_happy-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/mood_happy/mood_happy-vggish-audioset-1.pb
+    # other models
+    # - curl -s -o models/approachability_2c-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/approachability/approachability_2c-discogs-effnet-1.json
+    # - curl -s -o models/approachability_3c-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/approachability/approachability_3c-discogs-effnet-1.json
+    - curl -s -o models/approachability_regression-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/approachability/approachability_regression-discogs-effnet-1.json
+    - curl -s -o models/danceability-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/danceability/danceability-discogs-effnet-1.json
+    # - curl -s -o models/engagement_2c-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/engagement/engagement_2c-discogs-effnet-1.json
+    # - curl -s -o models/engagement_3c-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/engagement/engagement_3c-discogs-effnet-1.json
+    - curl -s -o models/engagement_regression-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/engagement/engagement_regression-discogs-effnet-1.json
+    - curl -s -o models/gender-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/gender/gender-discogs-effnet-1.json
+    - curl -s -o models/mtt-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/mtt/mtt-discogs-effnet-1.json
+    - curl -s -o models/mtg_jamendo_instrument-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/mtg_jamendo_instrument/mtg_jamendo_instrument-discogs-effnet-1.json
+    # - curl -s -o models/mtg_jamendo_top50tags-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/mtg_jamendo_top50tags/mtg_jamendo_top50tags-discogs-effnet-1.json
+    # - curl -s -o models/nsynth_acoustic_electronic-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/nsynth_acoustic_electronic/nsynth_acoustic_electronic-discogs-effnet-1.json
+    # - curl -s -o models/nsynth_bright_dark-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/nsynth_bright_dark/nsynth_bright_dark-discogs-effnet-1.json
+    # - curl -s -o models/nsynth_instrument-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/nsynth_instrument/nsynth_instrument-discogs-effnet-1.json
+    # - curl -s -o models/nsynth_reverb-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/nsynth_reverb/nsynth_reverb-discogs-effnet-1.json
+    - curl -s -o models/timbre-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/timbre/timbre-discogs-effnet-1.json
+    - curl -s -o models/tonal_atonal-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/tonal_atonal/tonal_atonal-discogs-effnet-1.json
+    - curl -s -o models/voice_instrumental-discogs-effnet-1.json https://essentia.upf.edu/models/classification-heads/voice_instrumental/voice_instrumental-discogs-effnet-1.json
 
-    - curl -s -o models/mood_party-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/mood_party/mood_party-musicnn-msd-2.pb
-    - curl -s -o models/mood_party-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/mood_party/mood_party-musicnn-mtt-2.pb
-    - curl -s -o models/mood_party-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/mood_party/mood_party-vggish-audioset-1.pb
+    # musicnn models
 
-    - curl -s -o models/mood_relaxed-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/mood_relaxed/mood_relaxed-musicnn-msd-2.pb
-    - curl -s -o models/mood_relaxed-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/mood_relaxed/mood_relaxed-musicnn-mtt-2.pb
-    - curl -s -o models/mood_relaxed-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/mood_relaxed/mood_relaxed-vggish-audioset-1.pb
+    # genre
+    # - curl -s -o models/genre_tzanetakis-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/genre_tzanetakis/genre_tzanetakis-msd-musicnn-1.pb
+    # - curl -s -o models/genre_rosamerica-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/genre_rosamerica/genre_rosamerica-msd-musicnn-1.pb
+    # - curl -s -o models/genre_dortmund-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/genre_dortmund/genre_dortmund-msd-musicnn-1.pb
 
-    - curl -s -o models/mood_sad-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/mood_sad/mood_sad-musicnn-msd-2.pb
-    - curl -s -o models/mood_sad-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/mood_sad/mood_sad-musicnn-mtt-2.pb
-    - curl -s -o models/mood_sad-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/mood_sad/mood_sad-vggish-audioset-1.pb
+    # tagging
+    - curl -s -o models/msd-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/msd/msd-msd-musicnn-1.pb
 
-    - curl -s -o models/danceability-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/danceability/danceability-musicnn-msd-2.pb
-    - curl -s -o models/danceability-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/danceability/danceability-musicnn-mtt-2.pb
-    - curl -s -o models/danceability-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/danceability/danceability-vggish-audioset-1.pb
+    # misc
+    - curl -s -o models/gender-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/gender/gender-msd-musicnn-1.pb
+    - curl -s -o models/voice_instrumental-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/voice_instrumental/voice_instrumental-msd-musicnn-1.pb
+    - curl -s -o models/tonal_atonal-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/tonal_atonal/tonal_atonal-msd-musicnn-1.pb
+    - curl -s -o models/danceability-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/danceability/danceability-msd-musicnn-1.pb
+    - curl -s -o models/fs_loop_ds-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/fs_loop_ds/fs_loop_ds-msd-musicnn-1.pb
 
-    - curl -s -o models/voice_instrumental-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/voice_instrumental/voice_instrumental-musicnn-msd-2.pb
-    - curl -s -o models/voice_instrumental-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/voice_instrumental/voice_instrumental-musicnn-mtt-2.pb
-    - curl -s -o models/voice_instrumental-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/voice_instrumental/voice_instrumental-vggish-audioset-1.pb
+    # mood
+    - curl -s -o models/moods_mirex-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/moods_mirex/moods_mirex-msd-musicnn-1.pb
+    - curl -s -o models/mood_acoustic-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/mood_acoustic/mood_acoustic-msd-musicnn-1.pb
+    - curl -s -o models/mood_party-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/mood_party/mood_party-msd-musicnn-1.pb
+    - curl -s -o models/mood_happy-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/mood_happy/mood_happy-msd-musicnn-1.pb
+    - curl -s -o models/mood_sad-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/mood_sad/mood_sad-msd-musicnn-1.pb
+    - curl -s -o models/mood_relaxed-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/mood_relaxed/mood_relaxed-msd-musicnn-1.pb
+    - curl -s -o models/mood_electronic-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/mood_electronic/mood_electronic-msd-musicnn-1.pb
+    - curl -s -o models/mood_aggressive-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/mood_aggressive/mood_aggressive-msd-musicnn-1.pb
 
-    - curl -s -o models/gender-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/gender/gender-musicnn-msd-2.pb
-    - curl -s -o models/gender-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/gender/gender-musicnn-mtt-2.pb
-    - curl -s -o models/gender-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/gender/gender-vggish-audioset-1.pb
+    # arousal and valence
+    - curl -s -o models/muse-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/muse/muse-msd-musicnn-1.pb
+    - curl -s -o models/emomusic-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/emomusic/emomusic-msd-musicnn-1.pb
+    - curl -s -o models/deam-msd-musicnn-1.pb https://essentia.upf.edu/models/classification-heads/deam/deam-msd-musicnn-1.pb
 
-    - curl -s -o models/tonal_atonal-musicnn-msd-2.pb https://essentia.upf.edu/models/classifiers/tonal_atonal/tonal_atonal-musicnn-msd-2.pb
-    - curl -s -o models/tonal_atonal-musicnn-mtt-2.pb https://essentia.upf.edu/models/classifiers/tonal_atonal/tonal_atonal-musicnn-mtt-2.pb
-    - curl -s -o models/tonal_atonal-vggish-audioset-1.pb https://essentia.upf.edu/models/classifiers/tonal_atonal/tonal_atonal-vggish-audioset-1.pb
+    # genre
+    # - curl -s -o models/genre_tzanetakis-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/genre_tzanetakis/genre_tzanetakis-msd-musicnn-1.json
+    # - curl -s -o models/genre_rosamerica-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/genre_rosamerica/genre_rosamerica-msd-musicnn-1.json
+    # - curl -s -o models/genre_dortmund-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/genre_dortmund/genre_dortmund-msd-musicnn-1.json
+
+    # tagging
+    - curl -s -o models/msd-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/msd/msd-msd-musicnn-1.json
+
+    # misc
+    - curl -s -o models/gender-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/gender/gender-msd-musicnn-1.json
+    - curl -s -o models/voice_instrumental-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/voice_instrumental/voice_instrumental-msd-musicnn-1.json
+    - curl -s -o models/tonal_atonal-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/tonal_atonal/tonal_atonal-msd-musicnn-1.json
+    - curl -s -o models/danceability-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/danceability/danceability-msd-musicnn-1.json
+    - curl -s -o models/fs_loop_ds-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/fs_loop_ds/fs_loop_ds-msd-musicnn-1.json
+
+    # mood
+    - curl -s -o models/moods_mirex-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/moods_mirex/moods_mirex-msd-musicnn-1.json
+    - curl -s -o models/mood_acoustic-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/mood_acoustic/mood_acoustic-msd-musicnn-1.json
+    - curl -s -o models/mood_party-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/mood_party/mood_party-msd-musicnn-1.json
+    - curl -s -o models/mood_happy-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/mood_happy/mood_happy-msd-musicnn-1.json
+    - curl -s -o models/mood_sad-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/mood_sad/mood_sad-msd-musicnn-1.json
+    - curl -s -o models/mood_relaxed-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/mood_relaxed/mood_relaxed-msd-musicnn-1.json
+    - curl -s -o models/mood_electronic-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/mood_electronic/mood_electronic-msd-musicnn-1.json
+    - curl -s -o models/mood_aggressive-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/mood_aggressive/mood_aggressive-msd-musicnn-1.json
+
+    # arousal and valence
+    - curl -s -o models/muse-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/muse/muse-msd-musicnn-1.json
+    - curl -s -o models/emomusic-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/emomusic/emomusic-msd-musicnn-1.json
+    - curl -s -o models/deam-msd-musicnn-1.json https://essentia.upf.edu/models/classification-heads/deam/deam-msd-musicnn-1.json
+
+
+    # vggish
+
+    #genre
+    # - curl -s -o models/genre_tzanetakis-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/genre_tzanetakis/genre_tzanetakis-audioset-vggish-1.pb
+    # - curl -s -o models/genre_rosamerica-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/genre_rosamerica/genre_rosamerica-audioset-vggish-1.pb
+    # - curl -s -o models/genre_dortmund-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/genre_dortmund/genre_dortmund-audioset-vggish-1.pb
+
+    # mood
+    - curl -s -o models/mood_sad-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/mood_sad/mood_sad-audioset-vggish-1.pb
+    - curl -s -o models/mood_relaxed-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/mood_relaxed/mood_relaxed-audioset-vggish-1.pb
+    - curl -s -o models/moods_mirex-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/moods_mirex/moods_mirex-audioset-vggish-1.pb
+    - curl -s -o models/mood_acoustic-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/mood_acoustic/mood_acoustic-audioset-vggish-1.pb
+    - curl -s -o models/mood_electronic-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/mood_electronic/mood_electronic-audioset-vggish-1.pb
+    - curl -s -o models/mood_aggressive-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/mood_aggressive/mood_aggressive-audioset-vggish-1.pb
+    - curl -s -o models/mood_party-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/mood_party/mood_party-audioset-vggish-1.pb
+    - curl -s -o models/mood_happy-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/mood_happy/mood_happy-audioset-vggish-1.pb
+
+    # other
+    - curl -s -o models/gender-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/gender/gender-audioset-vggish-1.pb
+    - curl -s -o models/voice_instrumental-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/voice_instrumental/voice_instrumental-audioset-vggish-1.pb
+    - curl -s -o models/tonal_atonal-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/tonal_atonal/tonal_atonal-audioset-vggish-1.pb
+    - curl -s -o models/danceability-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/danceability/danceability-audioset-vggish-1.pb
+
+    # arousal and valence
+    - curl -s -o models/emomusic-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/emomusic/emomusic-audioset-vggish-1.pb
+    - curl -s -o models/deam-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/deam/deam-audioset-vggish-1.pb
+    - curl -s -o models/muse-audioset-vggish-1.pb https://essentia.upf.edu/models/classification-heads/muse/muse-audioset-vggish-1.pb
+
+    #genre
+    # - curl -s -o models/genre_tzanetakis-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/genre_tzanetakis/genre_tzanetakis-audioset-vggish-1.json
+    # - curl -s -o models/genre_rosamerica-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/genre_rosamerica/genre_rosamerica-audioset-vggish-1.json
+    # - curl -s -o models/genre_dortmund-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/genre_dortmund/genre_dortmund-audioset-vggish-1.json
+
+    # mood
+    - curl -s -o models/mood_sad-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/mood_sad/mood_sad-audioset-vggish-1.json
+    - curl -s -o models/mood_relaxed-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/mood_relaxed/mood_relaxed-audioset-vggish-1.json
+    - curl -s -o models/moods_mirex-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/moods_mirex/moods_mirex-audioset-vggish-1.json
+    - curl -s -o models/mood_acoustic-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/mood_acoustic/mood_acoustic-audioset-vggish-1.json
+    - curl -s -o models/mood_electronic-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/mood_electronic/mood_electronic-audioset-vggish-1.json
+    - curl -s -o models/mood_aggressive-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/mood_aggressive/mood_aggressive-audioset-vggish-1.json
+    - curl -s -o models/mood_party-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/mood_party/mood_party-audioset-vggish-1.json
+    - curl -s -o models/mood_happy-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/mood_happy/mood_happy-audioset-vggish-1.json
+
+    # other
+    - curl -s -o models/gender-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/gender/gender-audioset-vggish-1.json
+    - curl -s -o models/voice_instrumental-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/voice_instrumental/voice_instrumental-audioset-vggish-1.json
+    - curl -s -o models/tonal_atonal-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/tonal_atonal/tonal_atonal-audioset-vggish-1.json
+    - curl -s -o models/danceability-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/danceability/danceability-audioset-vggish-1.json
+
+    # arousal and valence
+    - curl -s -o models/emomusic-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/emomusic/emomusic-audioset-vggish-1.json
+    - curl -s -o models/deam-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/deam/deam-audioset-vggish-1.json
+    - curl -s -o models/muse-audioset-vggish-1.json https://essentia.upf.edu/models/classification-heads/muse/muse-audioset-vggish-1.json
+
 
 # predict.py defines how predictions are run on your model
 predict: "predict.py:Predictor"

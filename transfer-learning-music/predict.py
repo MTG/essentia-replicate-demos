@@ -1,28 +1,29 @@
 # Prediction interface for Cog ⚙️
 # Reference: https://github.com/replicate/cog/blob/main/docs/python.md
 
-from pathlib import Path
 import tempfile
+import json
 
 from cog import BasePredictor, Input, Path
 import youtube_dl
-from essentia.streaming import (
+from essentia.standard import (
     MonoLoader,
-    FrameCutter,
-    VectorRealToTensor,
-    TensorToPool,
-    TensorflowInputMusiCNN,
-    TensorflowInputVGGish,
-    TensorflowPredict,
-    PoolToTensor,
-    TensorToVectorReal,
+    TensorflowPredict2D,
+    TensorflowPredictMusiCNN,
+    TensorflowPredictVGGish,
+    TensorflowPredictEffnetDiscogs,
 )
-from essentia import Pool, run
 import numpy as np
 
 from models import models
 
 MODELS_HOME = "/models"
+
+embedding_models = {
+    "effnet-discogs": TensorflowPredictEffnetDiscogs,
+    "musicnn-msd": TensorflowPredictMusiCNN,
+    "vggish-audioset": TensorflowPredictVGGish,
+}
 
 
 class Predictor(BasePredictor):
@@ -42,9 +43,14 @@ class Predictor(BasePredictor):
         ),
         model_type: str = Input(
             description="Model type (embeddings)",
-            default="musicnn-msd-2",
-            choices=["musicnn-msd-2", "musicnn-mtt-2", "vggish-audioset-1"],
-        )
+            default="effnet-discogs",
+            choices=[
+                "effnet-discogs",
+                "musicnn-msd",
+                "musicnn-mtt",
+                "vggish-audioset",
+            ],
+        ),
     ) -> Path:
         """Run a single prediction by all models of the selected type"""
 
@@ -62,89 +68,61 @@ class Predictor(BasePredictor):
             title = audio.name
 
         # Configure a processing chain based on the selected model type.
-        pool = Pool()
-        loader = MonoLoader(filename=str(audio), sampleRate=self.sample_rate)
+        audio = MonoLoader(filename=str(audio), sampleRate=self.sample_rate)()
 
-        patch_hop_size = 0  # No overlap for efficiency
-        batch_size = 256
+        model_name = "/models/" + models[model_type]["name"]
+        downstream_models = models[model_type]["downstream_models"]
+        embedding_layer = models[model_type]["embedding_layer"]
 
-        if model_type in ["musicnn-msd-2", "musicnn-mtt-2"]:
-            frame_size = 512
-            hop_size = 256
-            patch_size = 187
-            nbands = 96
-            melSpectrogram = TensorflowInputMusiCNN()
-        elif model_type in ["vggish-audioset-1"]:
-            frame_size = 400
-            hop_size = 160
-            patch_size = 96
-            nbands = 64
-            melSpectrogram = TensorflowInputVGGish()
+        print(model_name)
 
-        frameCutter = FrameCutter(
-            frameSize=frame_size,
-            hopSize=hop_size,
-            silentFrames="keep",
+        model = embedding_models[model_type](
+            graphFilename=model_name,
+            output=embedding_layer,
         )
-        vectorRealToTensor = VectorRealToTensor(
-            shape=[batch_size, 1, patch_size, nbands],
-            patchHopSize=patch_hop_size,
-        )
-        tensorToPool = TensorToPool(namespace="model/Placeholder")
+        embeddings = model(audio)
 
-        # Algorithms for specific models.
-        tensorflowPredict = {}
-        poolToTensor = {}
-        tensorToVectorReal = {}
+        results = {}
+        for downstream_model_name, downstream_model_path in downstream_models.items():
+            metadata_file = "/models/" + downstream_model_path.replace(".pb", ".json")
+            with open(metadata_file, "r") as f:
+                metadata = json.load(f)
 
-        for model in models:
-            modelFilename = "/models/%s-%s.pb" % (model["name"], model_type)
-            tensorflowPredict[model["name"]] = TensorflowPredict(
-                graphFilename=modelFilename,
-                inputs=["model/Placeholder"],
-                outputs=["model/Sigmoid"],
-            )
-            poolToTensor[model["name"]] = PoolToTensor(namespace="model/Sigmoid")
-            tensorToVectorReal[model["name"]] = TensorToVectorReal()
+            classes = metadata["classes"]
+            input_name = metadata["schema"]["inputs"][0]["name"]
 
-        loader.audio >> frameCutter.signal
-        frameCutter.frame >> melSpectrogram.frame
-        melSpectrogram.bands >> vectorRealToTensor.frame
-        vectorRealToTensor.tensor >> tensorToPool.tensor
+            for output in metadata["schema"]["outputs"]:
+                if output["output_purpose"] == "predictions":
+                    output_name = output["name"]
 
-        for model in [model["name"] for model in models]:
-            tensorToPool.pool >> tensorflowPredict[model].poolIn
-            tensorflowPredict[model].poolOut >> poolToTensor[model].pool
-            (poolToTensor[model].tensor >> tensorToVectorReal[model].tensor)
-            tensorToVectorReal[model].frame >> (pool, "activations.%s" % model)
+            activations = TensorflowPredict2D(
+                graphFilename="/models/" + downstream_model_path,
+                input=input_name,
+                output=output_name,
+            )(embeddings)
+            activations_mean = np.mean(activations, axis=0)
 
-        print("running the inference network...")
-        run(loader)
+            top_class = np.argmax(activations_mean)
+            prob = activations_mean[top_class]
+            label = classes[top_class]
+
+            results[downstream_model_name] = {
+                "prob": prob,
+                "label": label,
+            }
 
         title = "# %s\n" % title
-        header = "| model | class | activation |\n"
+        header = "| model | top class | activation |\n"
         bar = "|---|---|---|\n"
         table = title + header + bar
-        for model in models:
-            average = np.mean(pool["activations.%s" % model["name"]], axis=0)
 
-            labels = []
-            activations = []
+        rows = []
+        for ds_model_name, values in results.items():
+            rows.append(
+                f"| {ds_model_name} | {values['label']} | {values['prob']:.2f} |\n"
+            )
 
-            top_class = np.argmax(average)
-            for i, label in enumerate(model["labels"]):
-                labels.append(label)
-                if i == top_class:
-                    activations.append(f"**{average[i]:.2f}**")
-                else:
-                    activations.append(f"{average[i]:.2f}")
-
-            labels = "<br>".join(labels)
-            activations = "<br>".join(activations)
-
-            table += f"{model['name']} | {labels} | {activations}\n"
-            if model != models[-1]:
-                table += "||<hr>|<hr>|\n"  # separator for readability
+        table += "".join(rows)
 
         out_path = Path(tempfile.mkdtemp()) / "out.md"
         with open(out_path, "w") as f:
