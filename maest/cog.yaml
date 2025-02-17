@@ -21,6 +21,7 @@ build:
 
   # commands run after the environment is setup
   run:
+    - apt-get update && apt-get install -y git
     - pip install --upgrade --force-reinstall git+https://github.com/ytdl-org/youtube-dl.git
     - mkdir models
     - curl -L -o models/discogs-maest-30s-pw-1.pb "https://essentia.upf.edu/models/feature-extractors/maest/discogs-maest-30s-pw-1.pb"
