@@ -1,6 +1,7 @@
 # Prediction interface for Cog ⚙️
 # Reference: https://github.com/replicate/cog/blob/main/docs/python.md
 
+import json
 import tempfile
 from cmath import polar
 
@@ -81,6 +82,11 @@ class Predictor(BasePredictor):
             default="emomusic",
             choices=["emomusic", "deam", "muse"],
         ),
+        output_format: str = Input(
+            description="Output either a bar chart visualization or a JSON blob",
+            default="Visualization",
+            choices=["Visualization", "JSON"],
+        ),
     ) -> Path:
         """Run a single prediction on the model"""
 
@@ -116,6 +122,12 @@ class Predictor(BasePredictor):
 
         valence = results[0]
         arousal = results[1]
+
+        if output_format == "JSON":
+            out_path = Path(tempfile.mkdtemp()) / "out.json"
+            with open(out_path, "w") as f:
+                json.dump({"valence": float(valence), "arousal": float(arousal)}, f)
+            return out_path
 
         sns.set_style("darkgrid")
         g = sns.lmplot(
