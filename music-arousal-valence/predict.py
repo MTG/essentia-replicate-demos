@@ -3,7 +3,6 @@
 
 import json
 import tempfile
-from cmath import polar
 
 import pandas as pd
 import numpy as np
@@ -190,8 +189,8 @@ class Predictor(BasePredictor):
                 title = ""  # is it possible that the title metadata is unavailable? Continue anyway
 
         paths = [p for p in tmp_dir.glob(f"audio.{ext}")]
-        assert (
-            len(paths) == 1
-        ), "Something unexpected happened. Should be only one match!"
+        assert len(paths) == 1, (
+            "Something unexpected happened. Should be only one match!"
+        )
 
         return paths[0], title
